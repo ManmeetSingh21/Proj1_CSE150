@@ -142,7 +142,7 @@ public class KThread {
 	Lib.debug(dbgThread,
 		  "Forking thread: " + toString() + " Runnable: " + target);
 
-	boolean intStatus = Machine.interrupt().disable();
+	boolean intStatus = Machine.interrupt().disable();	//copy this for the join
 
 	tcb.start(new Runnable() {
 		public void run() {
@@ -191,6 +191,12 @@ public class KThread {
 	Lib.assertTrue(toBeDestroyed == null);
 	toBeDestroyed = currentThread;
 
+	while(queueList.size()>0){		//check to see if there are anymore threads in the list
+		boolean intStatus = Machine.interrupt().disable();
+		queueList.Front().ready();			//front, getFirst?	//what does this step do?
+
+		Machine.interrupt().restore(intStatus);
+		queueList.removeFirst();			//destroy the first one because it has been completed
 
 	currentThread.status = statusFinished;
 	
@@ -256,10 +262,10 @@ public class KThread {
     public void ready() {
 	Lib.debug(dbgThread, "Ready thread: " + toString());
 	
-	Lib.assertTrue(Machine.interrupt().disabled());
+	Lib.assertTrue(Machine.interrupt().disabled());		//this is to disable the machine
 	Lib.assertTrue(status != statusReady);
 	
-	status = statusReady;
+	status = statusReady;					//
 	if (this != idleThread)
 	    readyQueue.waitForAccess(this);
 	
@@ -273,26 +279,21 @@ public class KThread {
      * thread.
      */
     public void join() {
-        
 	Lib.debug(dbgThread, "Joining to thread: " + toString());
+	//queue is already made already? it is called readyQueue
+	/*	if(this.status == statusFinished){
+		return;
+	}
+	*/
+	Lib.assertTrue(this != currentThread);			//if not correct, prints error message
+								//because a method can only be called once
 
-	Lib.assertTrue(this != currentThread);
-        /*
-         join() {
-         Disable interrupts;
-         if (joinQueue not be initiated) {
-         create a new thread queue (joinQueue) with transfer priority flag opened
-         joinQueue acquires this thread as holder
-         }
-         If (CurrentThread != self) and (status is not Finished) {
-         add current thread to join queue
-         sleep current thread
-         }
-         
-         Re-enable interrupts;
-         }
-         */
-      
+	boolean intStatus = Machine.interrupt().disable();	
+	if(this.status != statusFinished){			//checking if the thread is completed
+		readyQueue.add(currentThread);			//since there is already a thread running, you add it to the queue list
+		currentThread.sleep();				//dont allow the currentThread to run
+	}
+	Machine.interrupt().restore(intStatus);			//enable the interrupt
 
     }
 
