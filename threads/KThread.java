@@ -280,17 +280,18 @@ public class KThread {
      */
     public void join() {
 	Lib.debug(dbgThread, "Joining to thread: " + toString());
-	//queue is already made already? it is called readyQueue
-	/*	if(this.status == statusFinished){
-		return;
+	if(joinQueue == null){					//creating a ThreadQueue
+		//joinQueue = ThreadedKernal.scheduler.
+		//ThreadedKernel.scheduler.newThreadQueue(false);
+		
+		joinQueue.acquire(this);
 	}
-	*/
+
 	Lib.assertTrue(this != currentThread);			//if not correct, prints error message
 								//because a method can only be called once
-
 	boolean intStatus = Machine.interrupt().disable();	
 	if(this.status != statusFinished){			//checking if the thread is completed
-		readyQueue.add(currentThread);			//since there is already a thread running, you add it to the queue list
+		joinQueue.waitForAccess(currentThread);		//thread queue that another thread can receive access
 		currentThread.sleep();				//dont allow the currentThread to run
 	}
 	Machine.interrupt().restore(intStatus);			//enable the interrupt
@@ -459,6 +460,7 @@ public class KThread {
     private static int numCreated = 0;
 
     private static ThreadQueue readyQueue = null;
+    private static ThreadQueue joinQueue = null;		//making a queue
     private static KThread currentThread = null;
     private static KThread toBeDestroyed = null;
     private static KThread idleThread = null;
