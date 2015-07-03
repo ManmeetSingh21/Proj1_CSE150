@@ -183,23 +183,22 @@ public class KThread {
      */
     public static void finish() {
 	Lib.debug(dbgThread, "Finishing thread: " + currentThread.toString());
-	
 	Machine.interrupt().disable();
 
-	Machine.autoGrader().finishingCurrentThread();
+	ThreadQueue queueList = currentThread.joinQueue;		//the current queue list, checking if it is finished
 
+	while(queueList != null){		//check to see if there are anymore threads in the list
+		KThread thread = queueList.nextThread();
+		while(thread != null){
+			thread.ready();
+			thread = queueList.nextThread();
+		}
+	}		
+
+	Machine.autoGrader().finishingCurrentThread();
 	Lib.assertTrue(toBeDestroyed == null);
 	toBeDestroyed = currentThread;
-
-	while(queueList.size()>0){		//check to see if there are anymore threads in the list
-		boolean intStatus = Machine.interrupt().disable();
-		queueList.Front().ready();			//front, getFirst?	//what does this step do?
-
-		Machine.interrupt().restore(intStatus);
-		queueList.removeFirst();			//destroy the first one because it has been completed
-
 	currentThread.status = statusFinished;
-	
 	sleep();
     }
 
@@ -281,9 +280,7 @@ public class KThread {
     public void join() {
 	Lib.debug(dbgThread, "Joining to thread: " + toString());
 	if(joinQueue == null){					//creating a ThreadQueue
-		//joinQueue = ThreadedKernal.scheduler.
-		//ThreadedKernel.scheduler.newThreadQueue(false);
-		
+		joinQueue = ThreadedKernel.scheduler.newThreadQueue(false);
 		joinQueue.acquire(this);
 	}
 
@@ -450,6 +447,7 @@ public class KThread {
     private String name = "(unnamed thread)";
     private Runnable target;
     private TCB tcb;
+    private ThreadQueue joinQueue = null;		//making a queue
 
     /**
      * Unique identifer for this thread. Used to deterministically compare
@@ -460,7 +458,6 @@ public class KThread {
     private static int numCreated = 0;
 
     private static ThreadQueue readyQueue = null;
-    private static ThreadQueue joinQueue = null;		//making a queue
     private static KThread currentThread = null;
     private static KThread toBeDestroyed = null;
     private static KThread idleThread = null;
