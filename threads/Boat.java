@@ -98,28 +98,28 @@ public class Boat
 			int location = 0; //'Molokai'
 			AdultItinerary(location);
 		}
-	}
+	};
 	
 	Runnable runChild = new Runnable(){
 		public void run(){
 			int location = 0; //'Oahu'
 			ChildItinerary(location);
 		}
-	}
+	};
 	
 	//Create threads for adults
 	for(int i=1; i<=adults; i++){
 		KThread k = new KThread(runAdult);
 		k.setName("Adult Thread " + i);
 		k.fork();
-	};
+	}
 	
 	//Create threads for children
 	for(int i=1; i<=children; i++){
 		KThread k = new KThread(runChild);
 		k.setName("Child Thread " + i);
 		k.fork();
-	};
+	}
 	//keep listening for thread count till all on Molokai
 	while(wordReceived != (children+recieved)){
 		int wordReceived = coms.listen();
