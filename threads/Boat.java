@@ -126,7 +126,7 @@ public class Boat
 		//keep listening for thread count till all on Molokai
 		while(wordReceived != (children+adults)){
 			wordReceived = coms.listen();
-			System.out.println("Count on Molokai: " + wordRecieved);
+			System.out.println("Count on Molokai: " + wordReceived);
 		}
 
     }
