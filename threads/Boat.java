@@ -128,6 +128,11 @@ public class Boat
 			wordReceived = coms.listen();
 			System.out.println("Count on Molokai: " + wordReceived);
 		}
+		
+		
+		//checks
+		System.out.println("Number of adults: " + adults);
+		System.out.println("Number of children: " + children);
 
     }
 
@@ -196,6 +201,9 @@ public class Boat
 		//release boat lock
 		boatLock.release();
     }
+	
+	
+	
 
     static void ChildItinerary(int location)
     {
@@ -223,6 +231,7 @@ public class Boat
 						childrenOnOahu--;
 						
 						bg.ChildRowToMolokai(); //PILOT child
+						System.out.println("1 child boards boat");
 						
 						//update for when child arrives on Molokai
 						childrenOnMolokai++;
@@ -240,6 +249,8 @@ public class Boat
 						childrenOnOahu--;
 						
 						bg.ChildRideToMolokai(); //PASSENGER child
+						//FLAG: 
+						System.out.println("2 children rowing to Molokai");
 						
 						//get to Molokai
 						childrenOnMolokai++;
