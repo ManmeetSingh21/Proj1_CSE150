@@ -47,7 +47,7 @@ public class Communicator {
     	transfer = true;
     	listenerCond.wakeAll();
     	speaker--;
-    	lock.release;
+    	lock.release();
     }
 
     /**
