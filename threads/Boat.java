@@ -1,17 +1,6 @@
 package nachos.threads;
 import nachos.ag.BoatGrader;
 
-/*
-	Variables need to create:
- 		boatlock?
-		location
-		boat location
-		# ppl on boat?
-		
-	
-	Conditions: Oahu, Molokai
-*/
-
 
 public class Boat
 {
@@ -122,15 +111,15 @@ public class Boat
 	for(int i=1; i<=adults; i++){
 		KThread k = new KThread(runAdult);
 		k.setName("Adult Thread " + i);
-		k.fork()
-	}
+		k.fork();
+	};
 	
 	//Create threads for children
 	for(int i=1; i<=children; i++){
 		KThread k = new KThread(runChild);
 		k.setName("Child Thread " + i);
 		k.fork();
-	}
+	};
 	//keep listening for thread count till all on Molokai
 	while(wordReceived != (children+recieved)){
 		int wordReceived = coms.listen();
@@ -158,6 +147,7 @@ public class Boat
 			//check location
 			if (location == 0){ //'Oahu'
 				//may need while loop here -------------------------
+				//potentially combine all in to one if statement
 				//check number of children on Oahu
 				if( childrenOnOahu > 1) {
 					onOahu.sleep();
@@ -169,7 +159,8 @@ public class Boat
 				//make sure boat is on Oahu
 				if(boatLocation != 0){
 					onOahu.sleep();
-				}
+				} 
+				//-------------------------------------------------
 				else{
 					bg.AdultRowToMolokai();
 					
@@ -179,6 +170,7 @@ public class Boat
 					coms.speak(childrenOnMolokai+adultsOnMolokai);
 					
 					boatLocation = 1; //boat is now on Molokai
+					location = 1; //adult is now on Molokai
 					
 					//wake everyone up
 					onMolokai.wakeAll();
@@ -203,6 +195,7 @@ public class Boat
 		acquire();
 		while(true){
 			if(location == 0){ //Oahu
+			//----Potentially put this all in one if statement...
 				//check number of children and adults on Oahu
 				if(adultsOnOahu > 0 && childrenOnOahu == 1){
 					onOahu.sleep();
@@ -215,6 +208,7 @@ public class Boat
 				else if(boatLocation != 0){
 					onOahu.sleep();
 				}
+			//----------------------------------------------------	
 				else if(childrenOnOahu > 1){ //2 children must board boat
 					//check boat contents
 					if(countOnBoat == 0){
@@ -237,7 +231,7 @@ public class Boat
 						boardBoat.wake(); //wake PILOT child
 						boardBoat.sleep(); //sleep on boat for the ride
 						
-						//increment update
+						//count updates
 						countOnBoat++;
 						childrenOnOahu--;
 						
@@ -260,7 +254,7 @@ public class Boat
 					else if(countOnBoat > 2){
 						onOahu.sleep(); //checking any extra cases
 					}
-				}
+				} // if last child on Oahu...child rows directly to Molokai
 				else if(adultsOnOahu == 0 && childrenOnOahu == 1){
 					bg.ChildRowToMolokai();
 					
@@ -306,8 +300,8 @@ public class Boat
 		//release boat lock
 		release();
     }
-
-/*
+	
+	/*
     static void SampleItinerary()
     {
 	// Please note that this isn't a valid solution (you can't fit
@@ -319,7 +313,6 @@ public class Boat
 	bg.ChildRideToMolokai();
 	bg.AdultRideToMolokai();
 	bg.ChildRideToMolokai();
-    } 
-    */
+    }*/
     
 }
