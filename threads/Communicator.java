@@ -18,6 +18,8 @@ public class Communicator {
      private Condition2 speakerCond;
      private Condition2 listenerCond;
      private Lock lock;
+     private int listener;
+     private int speaker;
      
     public Communicator() {
     	this.transfer = false;
@@ -69,6 +71,6 @@ public class Communicator {
 	transfer = false;
 	listener--;
 	lock.release();
-	return 0;
+	return word;
     }
 }
