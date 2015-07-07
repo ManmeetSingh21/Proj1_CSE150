@@ -150,7 +150,7 @@ public class PriorityScheduler extends Scheduler {
 		if (this.transferPriority && this.holder != null) //if (holder and transfer priority exists)
 		{
 	
-			this.holder.myResource.remove(this); //remove from list
+			this.holder.resource.remove(this); //remove from list
 	
 		}
 
@@ -314,7 +314,7 @@ public class PriorityScheduler extends Scheduler {
 
         if (dirty) { //if (dirty)
         	
-            for (Iterator<ThreadQueue> T = myResource.iterator(); T.hasNext();) {  //for each PriorityQueue being held
+            for (Iterator<ThreadQueue> T = resource.iterator(); T.hasNext();) {  //for each PriorityQueue being held
             	
                 PriorityQueue PQ = (PriorityQueue)(T.next());   // effective = MAX(effective, PQ.getEffectivePriority)
 
