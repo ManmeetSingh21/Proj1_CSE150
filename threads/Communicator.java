@@ -14,6 +14,11 @@ public class Communicator {
     /**
      * Allocate a new communicator.
      */
+     private boolean transfer;
+     private Condition2 speakerCond;
+     private Condition2 listenerCond;
+     private Lock lock;
+     
     public Communicator() {
     	this.transfer = false;
     	this.lock = new Lock();
