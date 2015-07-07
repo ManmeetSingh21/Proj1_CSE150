@@ -161,7 +161,7 @@ public class PriorityScheduler extends Scheduler {
 			
             		}
 	//incomptype thread state -> kthread
-            ThreadState FT = pickNextThread(); //ThreadState FT = pickNextThread();
+            KThread FT = pickNextThread(); //ThreadState FT = pickNextThread();
             
             if (FT != null) { 
             	
@@ -181,12 +181,12 @@ public class PriorityScheduler extends Scheduler {
 	 *		return.
 	 */
 	protected ThreadState pickNextThread() {
-		ThreadState next= null; //ThreadState X = null
+		KThread next= null; //ThreadState X = null
 		
 		
             	for (Iterator<KThread> TState = waitQueue.iterator(); TState.hasNext();) {  //for each ThreadState TState in waitQueue
             	
-                ThreadState thread = TState.next();  
+                KThread thread = TState.next();  
                 
                 
                 int priority = getThreadState(thread).getEffectivePriority(); //priority of the next thread
