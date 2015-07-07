@@ -152,7 +152,12 @@ public class Boat
 				//may need while loop here -------------------------
 				//potentially combine all in to one if statement
 				//check number of children on Oahu
-				if( childrenOnOahu > 1) {
+				//check number of ppl on boat
+				//check boat is on Oahu
+				while( childrenOnOahu > 1 || countOnBoat > 0 || boatLocation !=0){
+					onOahu.sleep();
+				}
+				/*if( childrenOnOahu > 1) {
 					onOahu.sleep();
 				}
 				//check number of children on boat | adults on boat
@@ -162,9 +167,9 @@ public class Boat
 				//make sure boat is on Oahu
 				if(boatLocation != 0){
 					onOahu.sleep();
-				} 
+				} */
 				//-------------------------------------------------
-				else{
+					//adult rows to Molokai
 					bg.AdultRowToMolokai();
 					
 					//update count
@@ -177,7 +182,7 @@ public class Boat
 					
 					//wake everyone up
 					onMolokai.wakeAll();
-				}
+				
 			}
 			else if(location == 1){ //'Molokai'
 				onMolokai.sleep();
@@ -198,21 +203,17 @@ public class Boat
 		boatLock.acquire();
 		while(true){
 			if(location == 0){ //Oahu
-			//----Potentially put this all in one if statement...
+			//----Potentially put this all in one if or while statement...
+				
 				//check number of children and adults on Oahu
-				if(adultsOnOahu > 0 && childrenOnOahu == 1){
-					onOahu.sleep();
-				}
 				//check number of children on boat
-				else if(countOnBoat == 2){
-					onOahu.sleep();
-				}
 				//check boat is on Oahu
-				else if(boatLocation != 0){
+				while((adultsOnOahu > 0 && childrenOnOahu == 1) || countOnBoat == 2 || boatLocation != 0){
 					onOahu.sleep();
 				}
+				
 			//----------------------------------------------------	
-				else if(childrenOnOahu > 1){ //2 children must board boat
+				if(childrenOnOahu > 1){ //2 children must board boat
 					//check boat contents
 					if(countOnBoat == 0){
 						boardBoat.sleep(); //board boat and wait for second passenger
@@ -273,7 +274,7 @@ public class Boat
 					
 					
 				}
-			}
+			}	
 			else if(location == 1){ //Molokai
 				//child ALWAYS bring back boat to Oahu
 				if(boatLocation != 1){
