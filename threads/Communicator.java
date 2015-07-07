@@ -1,6 +1,7 @@
 package nachos.threads;
 
 import nachos.machine.*;
+import java.util.*;
 
 /**
  * A <i>communicator</i> allows threads to synchronously exchange 32-bit
