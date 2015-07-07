@@ -180,7 +180,7 @@ public class PriorityScheduler extends Scheduler {
 	 * @return	the next thread that <tt>nextThread()</tt> would
 	 *		return.
 	 */
-	protected ThreadState pickNextThread() {
+	protected KThread pickNextThread() {
 		KThread next= null; //ThreadState X = null
 		
 		
