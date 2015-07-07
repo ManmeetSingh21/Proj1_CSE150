@@ -74,60 +74,60 @@ public class Boat
 
     public static void begin( int adults, int children, BoatGrader b )
     {
-	// Store the externally generated autograder in a class
-	// variable to be accessible by children.
-	bg = b;
+		// Store the externally generated autograder in a class
+		// variable to be accessible by children.
+		bg = b;
 
-	// Instantiate global variables here
-	int childrenOnOahu = children;
-	int adultsOnOahu = adults;
-	int childrenOnMolokai = 0;
-	int adultsOnMolokai = 0;	
-		
-	// Create threads here. See section 3.4 of the Nachos for Java
-	// Walkthrough linked from the projects page.
+		// Instantiate global variables here
+		int childrenOnOahu = children;
+		int adultsOnOahu = adults;
+		int childrenOnMolokai = 0;
+		int adultsOnMolokai = 0;	
+			
+		// Create threads here. See section 3.4 of the Nachos for Java
+		// Walkthrough linked from the projects page.
 
-	/*Runnable r = new Runnable() {
-	    public void run() {
-                SampleItinerary();
-            }
-        };
-        KThread t = new KThread(r);
-        t.setName("Sample Boat Thread");
-        t.fork(); */
+		/*Runnable r = new Runnable() {
+			public void run() {
+					SampleItinerary();
+				}
+			};
+			KThread t = new KThread(r);
+			t.setName("Sample Boat Thread");
+			t.fork(); */
+			
+		Runnable runAdult = new Runnable(){
+			public void run(){
+				int location = 0; //'Molokai'
+				AdultItinerary(location);
+			}
+		};
 		
-	Runnable runAdult = new Runnable(){
-		public void run(){
-			int location = 0; //'Molokai'
-			AdultItinerary(location);
+		Runnable runChild = new Runnable(){
+			public void run(){
+				int location = 0; //'Oahu'
+				ChildItinerary(location);
+			}
+		};
+		
+		//Create threads for adults
+		for(int i=1; i<=adults; i++){
+			KThread k = new KThread(runAdult);
+			k.setName("Adult Thread " + i);
+			k.fork();
 		}
-	}
-	
-	Runnable runChild = new Runnable(){
-		public void run(){
-			int location = 0; //'Oahu'
-			ChildItinerary(location);
+		
+		//Create threads for children
+		for(int i=1; i<=children; i++){
+			KThread k = new KThread(runChild);
+			k.setName("Child Thread " + i);
+			k.fork();
 		}
-	}
-	
-	//Create threads for adults
-	for(int i=1; i<=adults; i++){
-		KThread k = new KThread(runAdult);
-		k.setName("Adult Thread " + i);
-		k.fork();
-	};
-	
-	//Create threads for children
-	for(int i=1; i<=children; i++){
-		KThread k = new KThread(runChild);
-		k.setName("Child Thread " + i);
-		k.fork();
-	};
-	//keep listening for thread count till all on Molokai
-	while(wordReceived != (children+adults)){
-		wordReceived = coms.listen();
-		System.out.println("Count on Molokai: " + wordRecieved);
-	}
+		//keep listening for thread count till all on Molokai
+		while(wordReceived != (children+adults)){
+			wordReceived = coms.listen();
+			System.out.println("Count on Molokai: " + wordRecieved);
+		}
 
     }
 
