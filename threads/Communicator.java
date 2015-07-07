@@ -20,6 +20,7 @@ public class Communicator {
      private Lock lock;
      private int listener;
      private int speaker;
+     private int word;
      
     public Communicator() {
     	this.transfer = false;
@@ -38,7 +39,7 @@ public class Communicator {
      *
      * @param	word	the integer to transfer.
      */
-    public void speak(int word) {
+    public void speak() {
     	lock.acquire();
     	speaker++;
     	
@@ -67,7 +68,7 @@ public class Communicator {
 		listenerCond.sleep();
 	}
 	
-	int word = this.word;
+	word = this.word;
 	transfer = false;
 	listener--;
 	lock.release();
