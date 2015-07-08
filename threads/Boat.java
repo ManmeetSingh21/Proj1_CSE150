@@ -310,7 +310,7 @@ public class Boat
 				while(boatLocation != 1){
 					onMolokai.sleep();
 				}
-				else{
+				
 					//make sure there is children on Molokai
 
 					
@@ -325,7 +325,7 @@ public class Boat
 					//wake all and sleep
 					onOahu.wakeAll();
 					onOahu.sleep();
-				}
+				
 				
 			}
 			else{
