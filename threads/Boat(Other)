@@ -1,0 +1,198 @@
+package nachos.threads;
+import nachos.ag.BoatGrader;
+
+public class Boat
+{
+    static BoatGrader bg;
+  
+    public static void selfTest()
+    {
+	BoatGrader b = new BoatGrader();
+	
+	System.out.println("\n ***Testing Boats with only 2 children***");
+	begin(4, 3, b);
+    }
+
+    static Alarm alarm;
+    static Lock boatLock;
+    static boolean leaderFound;
+    static int adultsOnOahu;
+    static int childrenOnOahu;
+    
+    //conditions for different states
+    static Condition2 childOnOahu;
+    static Condition2 adultOnOahu;
+    static Condition2 childOnMolokai;
+    static Condition2 bossWaitingOnChild;
+    
+    static Condition2 simulationOver;
+    
+    
+    public static void begin( int adults, int children, BoatGrader b )
+    {
+	// Store the externally generated autograder in a class
+	// variable to be accessible by children.
+	bg = b;
+
+	// Instantiate global variables here
+	alarm = new Alarm();
+	boatLock = new Lock();
+	leaderFound = false;
+	adultsOnOahu = 0;
+	childrenOnOahu = 0;
+	childOnOahu = new Condition2(boatLock);
+	adultOnOahu = new Condition2(boatLock);
+	childOnMolokai = new Condition2(boatLock);
+	bossWaitingOnChild = new Condition2(boatLock);
+	simulationOver = new Condition2(boatLock);
+	
+	// Create threads here. See section 3.4 of the Nachos for Java
+	// Walkthrough linked from the projects page.
+	//adultsLeft = adults;
+	//childrenLeft = children;
+	for(int i=0; i < adults; i++)
+	{
+		KThread t = new KThread(new Runnable(){
+			public void run(){
+				AdultItinerary();
+			}
+			
+		});
+		//name for debugging purposes
+		t.setName("Adult:" + i);
+		t.fork();
+	}
+	for(int i=0; i < children; i++)
+	{
+		KThread t = new KThread(new Runnable(){
+			public void run(){
+				ChildItinerary();
+			}
+			
+		});
+		//name for debugging purposes
+		t.setName("Child:" + i);
+		t.fork();
+	}
+	/*  
+	Runnable r = new Runnable() {
+	    public void run() {
+                SampleItinerary();
+            }
+        };
+        KThread t = new KThread(r);
+        t.setName("Sample Boat Thread");
+        t.fork();
+*/
+	boatLock.acquire();
+	simulationOver.sleep();
+	boatLock.release();
+	System.out.println("End");
+    }
+
+    static void AdultItinerary()
+    {
+    	boatLock.acquire();
+    	adultsOnOahu++; //tell everyone at ohahu that you are there
+    	adultOnOahu.sleep();
+    	bg.AdultRowToMolokai();
+    	childOnMolokai.wake(); //get a child to row the boat back to ohahu
+    	boatLock.release();
+    	
+    }
+
+    static void BossItinerary()
+    {
+    	System.out.println(KThread.currentThread().getName() + ": Like a Boss");
+    	int childrenOnMolokai  = 0;
+    	boatLock.acquire();
+    	childrenOnOahu++;
+    	while(true)
+    	{
+    		System.out.println("BOSS: Picking an Action: (visible C:" + childrenOnOahu + " A:" + adultsOnOahu + ")");
+    		//must have at least 1 child on molokai to do anything
+    		if(childrenOnMolokai == 0 && childrenOnOahu < 2){
+    				//do nothing and wait
+    			System.out.println("BOSS: Waiting for children to spawn");
+    			boatLock.release();
+    			alarm.waitUntil(1000);
+    			boatLock.acquire();
+    		}else if(childrenOnOahu > 1){
+    			//row a child to molokai
+    			System.out.println("BOSS: Preparing to move myself and child to molokai");
+    			childOnOahu.wake();
+    			bossWaitingOnChild.sleep();
+    			System.out.println("BOSS: Made it to molokai");
+    			childrenOnMolokai++;
+    			childrenOnOahu -= 2;
+    			
+    			//go back to oahu to see if anyone is left
+    			bg.ChildRowToOahu();
+    			childrenOnOahu++;
+    		}else if(adultsOnOahu > 0){
+    			//row an adult to molokai
+    			System.out.println("BOSS: sending adult to molokai");
+    			adultOnOahu.wake();
+    			bossWaitingOnChild.sleep(); //wait for a child to get back
+    			System.out.println("BOSS: child reported sucess");
+    			childrenOnOahu++;
+    			childrenOnMolokai--;
+    			adultsOnOahu--;
+    		}else{
+    			//could be a victory condition (sleep to be sure)   			
+    			alarm.waitUntil(5000);
+    			if(childrenOnOahu == 1 && adultsOnOahu == 0){
+    				//row over solo for victory
+	    			System.out.println("BOSS: (No one left) going solo to molokai");
+	    			bg.ChildRowToMolokai();
+    				simulationOver.wake();
+    				boatLock.release();
+    				return;
+    			}
+    		}
+    	}
+    }
+    static void ChildItinerary()
+    {
+    	boolean isLeader = false;
+    	boatLock.acquire();
+    	if(!leaderFound){
+    		leaderFound = true;
+    		isLeader = true;
+    	}
+    	boatLock.release();
+    	if(isLeader){
+    		BossItinerary();
+    		return;
+    	}
+    	//normal child logic
+    	boatLock.acquire();   
+    	childrenOnOahu++; //counter is updated here because this is when the child is actually ready
+    	childOnOahu.sleep(); //wait for the boss to give you and order
+    	while(true){ 	 	
+	    	bg.ChildRowToMolokai();
+	    	bg.ChildRideToMolokai();
+	    	bossWaitingOnChild.wake();
+	    	childOnMolokai.sleep(); //adult could tell you to row back
+	    	bg.ChildRowToOahu();
+	    	bossWaitingOnChild.wake();
+	    	childOnOahu.sleep(); //wait for the boss to give you an order   	
+    	}
+    	//would uncomment this but eclipse complains that the code is unreachable so whatever
+    	//boatLock.release();
+    }
+
+    static void SampleItinerary()
+    {
+	// Please note that this isn't a valid solution (you can't fit
+	// all of them on the boat). Please also note that you may not
+	// have a single thread calculate a solution and then just play
+	// it back at the autograder -- you will be caught.
+	System.out.println("\n ***Everyone piles on the boat and goes to Molokai***");
+	bg.AdultRowToMolokai();
+	bg.ChildRideToMolokai();
+	bg.AdultRideToMolokai();
+	bg.ChildRideToMolokai();
+    }
+    
+}
