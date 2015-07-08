@@ -445,6 +445,6 @@ public void setDirty() {
 	protected int effectivePriority;          
 	protected ThreadQueue waitingOn; 
 	protected LinkedList<ThreadQueue> resource = new LinkedList<ThreadQueue>(); 
-	private boolean dirty = false;                 
+	private boolean dirty;                 
     }
 }
