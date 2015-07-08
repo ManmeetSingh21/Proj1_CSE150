@@ -197,7 +197,7 @@ public class Boat
 		//check boat contents
                     if (countOnBoat == 0){ //if nobody 1 child boards boat
                     	countOnBoat++;
-                        boardBoat.sleep //first child boards boat and waits for second child
+                        boardBoat.sleep(); //first child boards boat and waits for second child
                         
                         childrenOnOahu--;
                         bg.ChildRowToMolokai();
