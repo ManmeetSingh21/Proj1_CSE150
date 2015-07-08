@@ -184,7 +184,7 @@ public class PriorityScheduler extends Scheduler {
 		KThread next= null; //ThreadState X = null
 		
 		
-            	for (Iterator TState = waitQueue.iterator(); TState.hasNext();) {  //for each ThreadState TState in waitQueue
+            	for (Iterator<KThread> TState = waitQueue.iterator(); TState.hasNext();) {  //for each ThreadState TState in waitQueue
             	
                 KThread thread = TState.next();  
                 
@@ -234,7 +234,7 @@ public class PriorityScheduler extends Scheduler {
 
                 effective = priorityMinimum; //Effective= min priority;
                 
-                for (Iterator S = waitQueue.iterator(); S.hasNext();) { //for each ThreadState S in waitQueue
+                for (Iterator<KThread> S = waitQueue.iterator(); S.hasNext();) { //for each ThreadState S in waitQueue
                 	
                     KThread thread = S.next(); 
                     
@@ -314,7 +314,7 @@ public class PriorityScheduler extends Scheduler {
 
         if (dirty) { //if (dirty)
         	
-            for (Iterator T = resource.iterator(); T.hasNext();) {  //for each PriorityQueue being held
+            for (Iterator<ThreadQueue> T = resource.iterator(); T.hasNext();) {  //for each PriorityQueue being held
             	
                 PriorityQueue PQ = (PriorityQueue)(T.next());   // effective = MAX(effective, PQ.getEffectivePriority)
 
