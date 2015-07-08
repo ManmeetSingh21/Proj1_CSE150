@@ -212,6 +212,7 @@ public class Boat
     {
 		//acquire boat lock
 		boatLock.acquire();
+		
 		while(true){
 			if(location == 0){ //Oahu
 			//----Potentially put this all in one if or while statement...
@@ -229,9 +230,9 @@ public class Boat
 				
 				//LAST CASE: if last child on Oahu...just row to Molokai
 				if(adultsOnOahu == 0 && childrenOnOahu == 1){
-					bg.ChildRowToMolokai();
 					
 					childrenOnOahu--;
+					bg.ChildRowToMolokai();
 					childrenOnMolokai++;
 					
 					countOnBoat=0;
@@ -246,13 +247,14 @@ public class Boat
 				
 				else if(childrenOnOahu > 1){ //2 children must board boat
 					//check boat contents
-					if(countOnBoat == 0){ //if boat is empty start boarding
+					countOnBoat++;
+					if(countOnBoat == 1){ //if boat is empty start boarding
 						//board boat
-						countOnBoat++;						
-						childrenOnOahu--;
+						//countOnBoat++;						
+						//childrenOnOahu--;
 						
 						boardBoat.sleep(); //first child boards boat and wait for second passenger
-						
+						childrenOnOahu--;
 						
 						bg.ChildRowToMolokai(); //PILOT child
 						
@@ -264,15 +266,15 @@ public class Boat
 						onMolokai.sleep(); //sleep on Molokai
 						
 					}
-					else if(countOnBoat == 1){
+					else if(countOnBoat == 2){
 						//board the boat
 					
-						countOnBoat++;
-						childrenOnOahu--;
+						//countOnBoat++;
+						//childrenOnOahu--;
 						
 						boardBoat.wake(); //wake PILOT child
 						boardBoat.sleep(); //sleep on boat for the ride
-						
+						childrenOnOahu--;
 						
 						
 						bg.ChildRideToMolokai(); //PASSENGER child
@@ -303,12 +305,14 @@ public class Boat
 			}	
 			else if(location == 1){ //Molokai
 				//child ALWAYS bring back boat to Oahu
-				if(boatLocation != 1){
+				Lib.assertTrue(childrenOnMolokai>0); //otherwise will produce error
+				
+				while(boatLocation != 1){
 					onMolokai.sleep();
 				}
 				else{
 					//make sure there is children on Molokai
-					Lib.assertTrue(childrenOnMolokai>0); //otherwise will produce error
+
 					
 					bg.ChildRowToOahu();
 					
