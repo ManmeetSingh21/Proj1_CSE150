@@ -22,7 +22,7 @@ public class Boat
 	
 	static int boatLocation = 0;	
 	static int countOnBoat = 0;
-	static int currentLocation = 0; //Oahu = 0 && Molokai = 1
+	//static int currentLocation = 0; //Oahu = 0 && Molokai = 1
 	static int wordReceived = 0;
 	
 	
@@ -78,6 +78,10 @@ public class Boat
 		// variable to be accessible by children.
 		bg = b;
 
+		//checks
+		System.out.println("Number of adults: " + adults);
+		System.out.println("Number of children: " + children);
+		
 		// Instantiate global variables here
 		int childrenOnOahu = children;
 		int adultsOnOahu = adults;
@@ -98,16 +102,16 @@ public class Boat
 			
 		Runnable runAdult = new Runnable(){
 			public void run(){
-				int location = 0; //'Molokai'
+				int location = 0; //'Oahu'
 				AdultItinerary(location);
-			}
+			};
 		};
 		
 		Runnable runChild = new Runnable(){
 			public void run(){
 				int location = 0; //'Oahu'
 				ChildItinerary(location);
-			}
+			};
 		};
 		
 		//Create threads for adults
@@ -130,13 +134,10 @@ public class Boat
 		}
 		
 		
-		//checks
-		System.out.println("Number of adults: " + adults);
-		System.out.println("Number of children: " + children);
+	
 
     }
 
-	
 	
 	
 	
