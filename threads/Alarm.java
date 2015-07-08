@@ -2,6 +2,8 @@ package nachos.threads;
 
 import nachos.machine.*;
 
+import java.util.*;			//cause we need linkedlist
+
 /**
  * Uses the hardware timer to provide preemption, and to allow threads to sleep
  * until a certain time.
@@ -18,6 +20,8 @@ public class Alarm {
 	Machine.timer().setInterruptHandler(new Runnable() {
 		public void run() { timerInterrupt(); }
 	    });
+	    
+	    wakeQueue = new LinkedList<WakeThread>();
     }
 
     /**
@@ -27,7 +31,17 @@ public class Alarm {
      * that should be run.
      */
     public void timerInterrupt() {
+    	boolean intStatus = Machine.interrupt().disable();
+    	long MachineTime = Machine.timer().getTime();
+    	for(int i=0; i < wakeQueue.size(); i++){
+    		WakeThread wakingThread = wakeQueue.get(i);
+    			if (wakingThread.MachineTime <= MachineTime) {
+    				wakingThread.wakeThread.ready();		//put the thread back into queue
+    				wakeQueue.remove(i--);			//removes the previous
+    			}
+    	}
 	KThread.currentThread().yield();
+	Machine.interrupt().restore(intStatus);
     }
 
     /**
@@ -45,9 +59,29 @@ public class Alarm {
      * @see	nachos.machine.Timer#getTime()
      */
     public void waitUntil(long x) {
+    	boolean intStatus = Machine.interrupt().disable();
 	// for now, cheat just to get something working (busy waiting is bad)
-	long wakeTime = Machine.timer().getTime() + x;
-	while (wakeTime > Machine.timer().getTime())
-	    KThread.yield();
+	long MachineTime = Machine.timer().getTime() + x;
+	
+	WakeThread wakingThread = new WakeThread(MachineTime, KThread.currentThread());
+	wakeQueue.add(wakingThread);
+	KThread.sleep();
+	
+	Machine.interrupt().restore(intStatus);
     }
+    
+    private class WakeThread{
+    	WakeThread(long wakingThread, KThread wakingCurrentThread){
+    		MachineTime = wakingThread;
+    		wakeThread = wakingCurrentThread;
+    	}
+    		public long MachineTime;
+    		public KThread wakeThread;
+    }
+    
+    private LinkedList<WakeThread> wakeQueue;
+    
+    
+    
+    
 }
