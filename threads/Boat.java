@@ -5,316 +5,146 @@ import nachos.machine.*;
 public class Boat
 {
     static BoatGrader bg;
-    static Lock boatLock = new Lock();     // boat holds a lock 
-    static Communicator coms = new Communicator();        
-    // define two location
-    static final int Oahu = 0;
-    static final int Molokai = 1;
 
-    static int boatLocation = Oahu;        // where is the boat
-    static int cntPassengers = 0; 
-                            
+    static Lock boatLock = new Lock();     
+    static Communicator coms = new Communicator();
+	
+	static int boatLocation = 0;        
+    static int countOnBoat = 0; 
+	
 	//condition variables
     static Condition2 onOahu     = new Condition2(boatLock);
     static Condition2 onMolokai  = new Condition2(boatLock);
     static Condition2 boardBoat = new Condition2(boatLock);
-    
-	
+  
+	//global variables
     static int childrenOnOahu = 0;
     static int adultsOnOahu = 0;
     static int childrenOnMolokai = 0;
     static int adultsOnMolokai = 0;
-	
-   
+	//static int currentLocation = 0; // Oahu = 0, Molokai = 1 
+  
      
     public static void selfTest()
     {
-	BoatGrader b = new BoatGrader();
-	 
-	System.out.println("\n***Testing Boats with VARs***");
-
-	// begin(0, 2, b);
-    
-    // Var1: just one child 
-    // expected result: OK
-	// begin(0, 1, b);
-
-    // Var2: two child 
-    // expected result: OK
-	// begin(0, 2, b);
-
-    // Var3: three child 
-    // expected result: OK
-	// begin(0, 3, b);
-
-    // Var4: one adult
-    // expected result: Failed
-	// begin(1, 0, b);
-    //
-    // Var5: one adult, one child
-    // expected result: Failed
-	// begin(1, 1, b);
-
-    // Var6: one adult, two child
-    // expected result: OK
-	// begin(1, 2, b);
-    
-    // Var7: one adult, three child
-    // expected result: OK
-	// begin(1, 3, b);
-    
-    // Var8: two adult, two child
-    // expected result: OK
-	// begin(2, 2, b);
-    //
-    // Var9: two adult, two child
-    // expected result: OK
-	// begin(3, 2, b);
-
-    // Var10: lots of adult, two child
-    // expected result: OK
-	// begin(10, 2, b);
-
-    // Var11: lots of adult, lots of child
-    // expected result: OK
-	// begin(10, 20, b);
-
-    // Var12: stress testing
-    // expected result: OK
-	begin(100, 50, b);
-
-    /*
-	begin(2, 2, b);
-	begin(3, 2, b);
-	begin(4, 2, b);
-	begin(1, 3, b);
-	begin(2, 3, b);
-	begin(3, 3, b);
-	begin(4, 3, b);
-    */
-     
-    // System.out.println("\n ***Testing Boats with 2 children, 1 adult***");
-    // 	 begin(1, 2, b);
-     
-    // System.out.println("\n ***Testing Boats with 3 children, 3 adults***");
-    //   begin(3, 3, b);
+		BoatGrader b = new BoatGrader();
+		 
+		System.out.println("\n ***Testing Boats with only 2 children***");
+		begin(0, 2, b);
+		 
+		// System.out.println("\n ***Testing Boats with 2 children, 1 adult***");
+		// 	 begin(1, 2, b);
+		 
+		// System.out.println("\n ***Testing Boats with 3 children, 3 adults***");
+		//   begin(3, 3, b);
     }
      
     public static void begin( int adults, int children, BoatGrader b)
     {
 
-	// Store the externally generated autograder in a class
-	// variable to be accessible by children.
-	bg = b;
+		// Store the externally generated autograder in a class
+		// variable to be accessible by children.
+		bg = b;
 
-    childrenOnOahu = children;
-    adultsOnOahu = adults;
-    childrenOnMolokai = 0;
-    adultsOnMolokai = 0;
+		childrenOnOahu = children;
+		adultsOnOahu = adults;
+		childrenOnMolokai = 0;
+		adultsOnMolokai = 0;
 
-	
-	// Create threads here. See section 3.4 of the Nachos for Java
-	// Walkthrough linked from the projects page.
-    Runnable runChild = new Runnable() {
-        public void run() {
-            int location = Oahu;  // thread local varialbe, indicate where person is
-            ChildItinerary(location);
-        };
-    };
+		//Create child threads
+		Runnable runChild = new Runnable() {
+			public void run() {
+				int location = 0;  
+				ChildItinerary(location);
+			};
+		};
+		
+		for (int i = 1; i <= children; i++) {
+			KThread k = new KThread(runChild);
+			k.setName("Child Thread" + i);
 
-    Runnable runAdult = new Runnable() {
+			k.fork();
+		}
 
-        public void run() {
-            int location = Oahu;  // thread local varialbe, indicate where person is
-            AdultItinerary(location);
-        };
-    };
-     
-    for (int i = 1; i <= children; i++) {
-        KThread k = new KThread(runChild);
-        k.setName("Child Thread" + i);
+		//Create adult threads
+		Runnable runAdult = new Runnable() {
 
-        k.fork();
-    }
-     
-    for (int i = 1; i <= adults; i++) {
-        KThread k = new KThread(runAdult);
-        k.setName("Adult Thread" + i);
-        k.fork();
-    }
-        
-    while(true) 
-    {
-        int wordReceived = coms.listen();
-        System.out.println("Count On Molokai: " + wordReceived);
-        if ( wordReceived == children + adults){
-            break;
-        }
-    }
-        
-    }
+			public void run() {
+				int location = 0;  
+				AdultItinerary(location);
+			};
+		};
 
-    static void ChildItinerary(int location)
-    {
-       boatLock.acquire(); 
+		for (int i = 1; i <= adults; i++) {
+			KThread k = new KThread(runAdult);
+			k.setName("Adult Thread" + i);
+			k.fork();
+		}
+		
 
-       while (true) {
-
-            if (location == Oahu)
-            {
-
-               // wait until boat's arrival and available seat on boat
-               // if only one child left in Oahu, adults go first
-               while (boatLocation != Oahu || cntPassengers >= 2
-                       || (adultsOnOahu > 0 && childrenOnOahu == 1) ) 
-               {
-                   onOahu.sleep();
-               }
-
-               onOahu.wakeAll();
-                
-               // if no adult and only one child left in Oahu, the child row to Molokai directly 
-               if (adultsOnOahu == 0 && childrenOnOahu == 1) 
-               {
-                   childrenOnOahu--;
-                   bg.ChildRowToMolokai();
-
-                   boatLocation = Molokai;
-                   location = Molokai; 
-                   childrenOnMolokai++;
-
-                   // clear passenger number after arrival
-                   cntPassengers = 0;
-
-                   // collate the number of people in Molokai
-                   coms.speak(childrenOnMolokai+adultsOnMolokai);
-
-                   // child arrives in Molokai, to wake up one person in Molokai
-                   // at this point, all the persons should be on Molokai
-                   // onMolokai.wakeAll();
-                    
-                   // current child is sleeping in Molokai
-                   onMolokai.sleep();
-                    
-               }
-               else if (childrenOnOahu > 1) // send children to Molokai first
-               {
-                   if (cntPassengers == 1) //if 1 passenger SECOND child boards
-                   {  
-						cntPassengers++;
-                        // notify the fisrt guy to row to Molokai
-                        boardBoat.wake();
-                        boardBoat.sleep();
-
-                        // then ride myself to Molokai
-                        childrenOnOahu--;
-                        bg.ChildRideToMolokai();
-
-                        // all the children get off boat, decrease passenger number
-                        cntPassengers = cntPassengers - 2;
-
-                        // note, now boat arrives on Molokai
-                        boatLocation = Molokai;
-                        location = Molokai; 
-
-                        childrenOnMolokai++;
-
-                        coms.speak(childrenOnMolokai+adultsOnMolokai);
-
-                        // two children arrive in Molokai, wake up one child in Molokai
-                        onMolokai.wakeAll();
-
-                        // current child is sleeping
-                        onMolokai.sleep();
-                   }
-                   // the first passenger(pilot) rows to Molokai
-                   else if (cntPassengers == 0) 
-                   {    
-			cntPassengers++;
-                        // only one child on boat, wait for next child(passenger)  coming
-                        boardBoat.sleep();
-                        
-                        childrenOnOahu--;
-                        
-                        bg.ChildRowToMolokai();
-
-                        location = Molokai; 
-                        childrenOnMolokai++;
-                        
-                        // notify another passenger on baord to leave
-                        boardBoat.wake();
-
-                        // current child is sleeping
-                        onMolokai.sleep();
-                   }
-               } // if childrenOnOahu > 1
-            }
-            else if (location == Molokai) 
-            {
-               //Lib.assertTrue(childrenOnMolokai > 0);
-
-               while (boatLocation != Molokai) 
-               {
-                   onMolokai.sleep();
-               }
-
-               // note, just need one child pilot back to Oahu
-               childrenOnMolokai--;
-               bg.ChildRowToOahu();
-
-               boatLocation = Oahu;
-               location = Oahu; 
-               childrenOnOahu++;
-
-               onOahu.wakeAll();
-               onOahu.sleep();
-            }
-			else{
-				System.out.println("ERROR: Location other than 0 or 1");
-				Lib.assertTrue(false);
+		//Communicator keeps listening until Count On Molokai = total number of people
+		while(true){
+			int wordReceived = coms.listen();
+			System.out.println("Count On Molokai: " + wordReceived);
+			if ( wordReceived == (children + adults)){
 				break;
 			}
-
-        } // while (true)
-
-        boatLock.release(); 
+		}
+        
     }
-
-    static void AdultItinerary(int location)
+	
+	
+	
+	 static void AdultItinerary(int location)
     {
-       boatLock.acquire(); 
+	/* This is where you should put your solutions. Make calls
+	   to the BoatGrader to show that it is synchronized. For
+	   example:
+	       bg.AdultRowToMolokai();
+	   indicates that an adult has rowed the boat across to Molokai
+	*/
+		//acquire boat lock
+		boatLock.acquire(); 
 
-       while (true)
-       {
-           if (location == Oahu)
-           {
-               // child first, then send adults to Molokai
-               // but leave one child in Oahu
-               while (cntPassengers > 0 
-                       || childrenOnOahu > 1 || boatLocation != Oahu) 
-               {
+		while (true){ //continuous loop
+			//check location
+            if (location == 0){ //Oahu
+               //may need while loop instead of if loop here...
+               while ( childrenOnOahu > 1 || countOnBoat > 0 || boatLocation != 0){
                    onOahu.sleep();
                }
+			   /*if( childrenOnOahu > 1) {
+					onOahu.sleep();
+				}
+				//check number of children on boat | adults on boat
+				if( countOnBoat > 0){
+					onOahu.sleep();
+				}
+				//make sure boat is on Oahu
+				if(boatLocation != 0){
+					onOahu.sleep();
+				} */
+			//-------------------------------------------------------
+               
+			   bg.AdultRowToMolokai();
+               
+			   //update count and location
+			   adultsOnOahu--;
+			   adultsOnMolokai++;
+			   boatLocation = 1;
+               location = 1;
 
-               bg.AdultRowToMolokai();
-               adultsOnOahu--;
-
-               boatLocation = Molokai;
-               adultsOnMolokai++;
-
-               location = Molokai; 
-               coms.speak(childrenOnMolokai+adultsOnMolokai);
-
-               Lib.assertTrue(childrenOnMolokai > 0);
-
-               // adult arrive in Molokai, wake up one child in Molokai
+			   //communicating number of people on Molokai
+               coms.speak(childrenOnMolokai + adultsOnMolokai);
+              
+			   //wake everyone up and sleep on Molokai
                onMolokai.wakeAll();
-
-               // current adult is sleeping
                onMolokai.sleep();
+			   
+			   //Make sure there is at least ONE child on Molokai
+			   Lib.assertTrue(childrenOnMolokai > 0);
            }
-           else if (location == Molokai)
-           {
+           else if (location == 1){ //Molokai
                onMolokai.sleep();
            }
            else 
@@ -327,7 +157,122 @@ public class Boat
 
        boatLock.release(); 
     }
+	
+	
+    static void ChildItinerary(int location)
+    {
+		//acquire boat lock
+		boatLock.acquire(); 
 
+       while (true) {
+            if (location == 0){ //Oahu
+	       		//----Potentially put this all in one if or while statement...
+				
+				//check number of children and adults on Oahu
+				//check number of children on boat
+				//check boat is on Oahu
+               while ( (adultsOnOahu > 0 && childrenOnOahu == 1) || countOnBoat >= 2 || boatLocation != 0  ){
+                   onOahu.sleep();
+               }
+				//----------------------------------------------------
+				//if everyone is not awake WAKE EM.
+               onOahu.wakeAll();
+                
+				//LAST CASE: if last child on Oahu...just row to Molokai
+				if (adultsOnOahu == 0 && childrenOnOahu == 1) 
+               {
+                   
+                   bg.ChildRowToMolokai();
+
+				   //update count and location
+				   childrenOnOahu--;
+				   childrenOnMolokai++;
+				   countOnBoat = 0;
+                   boatLocation = 1;
+                   location = 1; 
+                   
+					//communicating number of people on Molokai
+                   coms.speak(childrenOnMolokai+adultsOnMolokai);
+                   onMolokai.sleep(); //this should be the last and all ppl are on Molokai now
+                    
+               }
+               else if (childrenOnOahu > 1){ //2 children must board boat
+					//check boat contents
+                    if (countOnBoat == 0) //if nobody 1 child boards boat
+                   {    
+						countOnBoat++;
+                        boardBoat.sleep //first child boards boat and waits for second child
+                        
+                        childrenOnOahu--;
+                        bg.ChildRowToMolokai();
+						
+						//update for when child arrives on Molokai
+                        childrenOnMolokai++;
+						location = 1; 
+                        
+						//wake other child and sleep on Molokai 
+                        boardBoat.wake();
+                        onMolokai.sleep();
+                   }
+				   else if (countOnBoat == 1) //if 1 passenger SECOND child boards
+                   {  
+						countOnBoat++;
+                        boardBoat.wake(); //wake PILOT child
+                        boardBoat.sleep();
+
+                        childrenOnOahu--;
+                        bg.ChildRideToMolokai();
+						//System.out.println("2 children rowing to Molokai");
+						
+                        //get off boat
+						countOnBoat = countOnBoat - 2;
+
+						//update location and count
+                        boatLocation = 1;
+                        location = 1; 
+                        childrenOnMolokai++;
+
+                        coms.speak(childrenOnMolokai+adultsOnMolokai);
+
+                        //wake all and go to sleep on Molokai
+                        onMolokai.wakeAll();
+                        onMolokai.sleep();
+                   }
+                  
+               } 
+            }
+            else if (location == 1) //Molokai
+            {
+               while (boatLocation != 1) {
+                   onMolokai.sleep();
+               }
+
+               childrenOnMolokai--;
+               bg.ChildRowToOahu();
+
+			   //update location and count
+               childrenOnOahu++;
+			   boatLocation = 0;
+               location = 0; 
+               
+
+			   //wake all on Oahu
+               onOahu.wakeAll();
+               onOahu.sleep(); // go to sleep on Oahu
+            }
+			else{
+				System.out.println("ERROR: Location other than 0 or 1");
+				Lib.assertTrue(false);
+				break;
+			}
+
+        } // while (true)
+
+        boatLock.release(); 
+    }
+
+   
+/*
     static void SampleItinerary()
     {
         // Please note that this isn't a valid solution (you can't fit
@@ -342,4 +287,4 @@ public class Boat
         bg.ChildRideToMolokai();
     }
 
-}
+} */
