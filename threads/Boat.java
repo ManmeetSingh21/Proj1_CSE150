@@ -99,7 +99,9 @@ public class Boat
 			KThread t = new KThread(r);
 			t.setName("Sample Boat Thread");
 			t.fork(); */
-			
+		
+		
+		
 		Runnable runAdult = new Runnable(){
 			public void run(){
 				int location = 0; //'Oahu'
@@ -131,7 +133,7 @@ public class Boat
 		//keep listening for thread count till all on Molokai
 		while(true){
 			int wordReceived = coms.listen();
-			//System.out.println("Count on Molokai: " + wordReceived);
+			System.out.println("Count on Molokai: " + wordReceived);
 			if(wordReceived == (children+adults)){
 				break;
 			}
@@ -154,6 +156,7 @@ public class Boat
 		
 		while(true){ //continuous loop
 			//check location
+			
 			if (location == 0){ //'Oahu'
 				//may need while loop here -------------------------
 				//potentially combine all in to one if statement
@@ -248,25 +251,7 @@ public class Boat
 				else if(childrenOnOahu > 1){ //2 children must board boat
 					//check boat contents
 					countOnBoat++;
-					if(countOnBoat == 1){ //if boat is empty start boarding
-						//board boat
-						//countOnBoat++;						
-						//childrenOnOahu--;
-						
-						boardBoat.sleep(); //first child boards boat and wait for second passenger
-						childrenOnOahu--;
-						
-						bg.ChildRowToMolokai(); //PILOT child
-						
-						//update for when child arrives on Molokai
-						childrenOnMolokai++;
-						location = 1;
-						
-						boardBoat.wake(); //wake other child 
-						onMolokai.sleep(); //sleep on Molokai
-						
-					}
-					else if(countOnBoat == 2){
+					if(countOnBoat == 2){
 						//board the boat
 					
 						//countOnBoat++;
@@ -297,9 +282,26 @@ public class Boat
 						onMolokai.sleep();
 						
 					}
-					else if(countOnBoat > 2){
-						onOahu.sleep(); //checking any extra cases
+					else if(countOnBoat == 1){ //if boat is empty start boarding
+						//board boat
+						//countOnBoat++;						
+						//childrenOnOahu--;
+						
+						boardBoat.sleep(); //first child boards boat and wait for second passenger
+						childrenOnOahu--;
+						
+						bg.ChildRowToMolokai(); //PILOT child
+						
+						//update for when child arrives on Molokai
+						childrenOnMolokai++;
+						location = 1; //location Molokai
+						
+						boardBoat.wake(); //wake other child 
+						onMolokai.sleep(); //sleep on Molokai
+						
 					}
+					
+					
 				} 
 				
 			}	
