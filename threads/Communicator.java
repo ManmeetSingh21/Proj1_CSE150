@@ -65,7 +65,7 @@ public class Communicator {
 	while(!isWordTransfer){
 		listenerCond.sleep();
 	}
-	transferred = this.wordTransfer
+	transferred = this.wordTransfer;
 	this.isWordTransfer = false;
 	speakerCond.wake();
 	paired.wake();
