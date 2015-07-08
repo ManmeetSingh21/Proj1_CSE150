@@ -195,6 +195,7 @@ public class Boat
 			}
 			else{
 				System.out.println("ERROR: Location other than 0 or 1 in Adult Itinerary");
+				Lib.assertTrue(false);
 				break; //there is an error
 			}
 		}
@@ -324,6 +325,7 @@ public class Boat
 			}
 			else{
 				System.out.println("ERROR: Location other than 0 or 1 in Child Itinerary");
+				Lib.assertTrue(false);
 				break; //there is an error
 			}
 		}
