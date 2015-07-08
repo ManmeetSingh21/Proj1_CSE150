@@ -307,7 +307,7 @@ public class Boat
 				}
 				else{
 					//make sure there is children on Molokai
-					lib.assertTrue(childrenOnMolokai>0); //otherwise will produce error
+					Lib.assertTrue(childrenOnMolokai>0); //otherwise will produce error
 					
 					bg.ChildRowToOahu();
 					
