@@ -5,7 +5,8 @@ import nachos.machine.*;
 public class Boat
 {
     static BoatGrader bg;
-                    
+    static Lock boatLock = new Lock();     // boat holds a lock 
+    static Communicator coms = new Communicator();        
     // define two location
     static final int Oahu = 0;
     static final int Molokai = 1;
@@ -24,8 +25,7 @@ public class Boat
     static int childrenOnMolokai = 0;
     static int adultsOnMolokai = 0;
 	
-    static Lock boatLock = new Lock();     // boat holds a lock 
-    static Communicator coms = new Communicator();
+   
      
     public static void selfTest()
     {
