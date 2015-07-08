@@ -14,19 +14,19 @@ public class Communicator {
     /**
      * Allocate a new communicator.
      */
-     private boolean transfer;
+     private int wordTransfer;
+     private boolean isWordTransfer;
      private Condition2 speakerCond;
      private Condition2 listenerCond;
+     private Condition2 paired;
      private Lock lock;
-     private int listener;
-     private int speaker;
-     private int word;
      
     public Communicator() {
-    	this.transfer = false;
+    	this.isWordTransfer = false;
     	this.lock = new Lock();
     	this.speakerCond = new Condition2(lock);
     	this.listenerCond = new Condition2(lock);
+    	this.paired = new Condition2(lock);
     }
 
     /**
@@ -39,17 +39,16 @@ public class Communicator {
      *
      * @param	word	the integer to transfer.
      */
-    public void speak() {
+    public void speak(int word) {
     	lock.acquire();
-    	speaker++;
-    	
-    	while(listener==0 || transfer){
+
+    	while(isWordTransfer){
     		speakerCond.sleep();
     	}
-    	this.word = word; 
-    	transfer = true;
-    	listenerCond.wakeAll();
-    	speaker--;
+    	this.isWordTransfer = true; 
+    	this.wordTransfer = word;
+    	listenerCond.wake();
+    	paired.sleep();
     	lock.release();
     }
 
@@ -60,18 +59,18 @@ public class Communicator {
      * @return	the integer transferred.
      */    
     public int listen() {
+    	int transferred;
     	lock.acquire();
-	listener++;
-	
-	while(transfer = false){
-		speakerCond.wakeAll();
+
+	while(!isWordTransfer){
 		listenerCond.sleep();
 	}
-	
-	word = this.word;
-	transfer = false;
-	listener--;
+	transferred = this.wordTransfer
+	this.isWordTransfer = false;
+	speakerCond.wake();
+	paired.wake();
+
 	lock.release();
-	return word;
+	return transferred;
     }
 }
