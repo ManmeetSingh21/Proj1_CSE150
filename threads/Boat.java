@@ -23,7 +23,7 @@ public class Boat
 	static int boatLocation = 0;	
 	static int countOnBoat = 0;
 	//static int currentLocation = 0; //Oahu = 0 && Molokai = 1
-	static int wordReceived = 0;
+
 	
 	
     public static void selfTest()
@@ -130,7 +130,7 @@ public class Boat
 		
 		//keep listening for thread count till all on Molokai
 		while(true){
-			wordReceived = coms.listen();
+			int wordReceived = coms.listen();
 			//System.out.println("Count on Molokai: " + wordReceived);
 			if(wordReceived == (children+adults)){
 				break;
@@ -188,6 +188,7 @@ public class Boat
 					
 					//wake everyone up
 					onMolokai.wakeAll();
+					onMolokai.sleep(); // go to sleep on Molokai
 				
 			}
 			else if(location == 1){ //'Molokai'
@@ -334,7 +335,7 @@ public class Boat
 		boatLock.release();
     }
 	
-	/*
+	
     static void SampleItinerary()
     {
 	// Please note that this isn't a valid solution (you can't fit
@@ -346,6 +347,6 @@ public class Boat
 	bg.ChildRideToMolokai();
 	bg.AdultRideToMolokai();
 	bg.ChildRideToMolokai();
-    }*/
+    }
     
 }
