@@ -230,7 +230,7 @@ public class Boat
                    // the first passenger(pilot) rows to Molokai
                    else if (cntPassengers == 0) 
                    {    
-						cntpassengers++;
+			cntPassengers++;
                         // only one child on boat, wait for next child(passenger)  coming
                         boardBoat.sleep();
                         
