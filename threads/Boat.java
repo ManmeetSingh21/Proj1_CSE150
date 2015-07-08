@@ -1,6 +1,6 @@
 package nachos.threads;
 import nachos.ag.BoatGrader;
-
+import nachos.machine.*;
 
 public class Boat
 {
@@ -127,18 +127,18 @@ public class Boat
 			k.setName("Child Thread " + i);
 			k.fork();
 		}
+		
 		//keep listening for thread count till all on Molokai
-		while(wordReceived != (children+adults)){
+		while(true){
 			wordReceived = coms.listen();
 			//System.out.println("Count on Molokai: " + wordReceived);
+			if(wordReceived == (children+adults)){
+				break;
+			}
 		}
-		
-		
-	
 
     }
 
-	
 	
 	
     static void AdultItinerary(int location)
@@ -217,14 +217,34 @@ public class Boat
 				//check number of children and adults on Oahu
 				//check number of children on boat
 				//check boat is on Oahu
-				while((adultsOnOahu > 0 && childrenOnOahu == 1) || countOnBoat == 2 || boatLocation != 0){
+				while((adultsOnOahu > 0 && childrenOnOahu == 1) || countOnBoat >= 2 || boatLocation != 0){
 					onOahu.sleep();
 				}
 				
 			//----------------------------------------------------	
-				if(childrenOnOahu > 1){ //2 children must board boat
+				//if everyone is not awake WAKE EM.
+				onOahu.wakeAll();
+				
+				//LAST CASE: if last child on Oahu...just row to Molokai
+				if(adultsOnOahu == 0 && childrenOnOahu == 1){
+					bg.ChildRowToMolokai();
+					
+					childrenOnOahu--;
+					childrenOnMolokai++;
+					
+					countOnBoat=0;
+					boatLocation = 1;
+					location = 1;
+					
+					coms.speak(childrenOnMolokai + adultsOnMolokai);
+					onMolokai.sleep(); //this should be last and all people are on Molokai
+					
+					
+				}
+				
+				else if(childrenOnOahu > 1){ //2 children must board boat
 					//check boat contents
-					if(countOnBoat == 0){
+					if(countOnBoat == 0){ //if boat is empty start boarding
 						//board boat
 						countOnBoat++;						
 						childrenOnOahu--;
@@ -233,12 +253,12 @@ public class Boat
 						
 						
 						bg.ChildRowToMolokai(); //PILOT child
-						System.out.println("1 child boards boat");
 						
 						//update for when child arrives on Molokai
 						childrenOnMolokai++;
 						location = 1;
-						boardBoat.wake(); //wake another child 
+						
+						boardBoat.wake(); //wake other child 
 						onMolokai.sleep(); //sleep on Molokai
 						
 					}
@@ -276,22 +296,8 @@ public class Boat
 					else if(countOnBoat > 2){
 						onOahu.sleep(); //checking any extra cases
 					}
-				} // if last child on Oahu...child rows directly to Molokai
-				else if(adultsOnOahu == 0 && childrenOnOahu == 1){
-					bg.ChildRowToMolokai();
-					
-					childrenOnOahu--;
-					childrenOnMolokai++;
-					
-					countOnBoat=0;
-					boatLocation = 1;
-					location = 1;
-					
-					coms.speak(childrenOnMolokai + adultsOnMolokai);
-					onMolokai.sleep(); //this should be last and all people are on Molokai
-					
-					
-				}
+				} 
+				
 			}	
 			else if(location == 1){ //Molokai
 				//child ALWAYS bring back boat to Oahu
@@ -299,6 +305,9 @@ public class Boat
 					onMolokai.sleep();
 				}
 				else{
+					//make sure there is children on Molokai
+					lib.assertTrue(childrenOnMolokai>0); //otherwise will produce error
+					
 					bg.ChildRowToOahu();
 					
 					//update count
