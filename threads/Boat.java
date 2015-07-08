@@ -9,20 +9,20 @@ public class Boat
     static Lock boatLock = new Lock();     
     static Communicator coms = new Communicator();
 	
-	static int boatLocation = 0;        
+    static int boatLocation = 0;        
     static int countOnBoat = 0; 
 	
-	//condition variables
+    //condition variables
     static Condition2 onOahu     = new Condition2(boatLock);
     static Condition2 onMolokai  = new Condition2(boatLock);
     static Condition2 boardBoat = new Condition2(boatLock);
   
-	//global variables
+    //global variables
     static int childrenOnOahu = 0;
     static int adultsOnOahu = 0;
     static int childrenOnMolokai = 0;
     static int adultsOnMolokai = 0;
-	//static int currentLocation = 0; // Oahu = 0, Molokai = 1 
+    //static int currentLocation = 0; // Oahu = 0, Molokai = 1 
   
      
     public static void selfTest()
@@ -125,30 +125,28 @@ public class Boat
 					onOahu.sleep();
 				} */
 			//-------------------------------------------------------
+               bg.AdultRowToMolokai();
                
-			   bg.AdultRowToMolokai();
-               
-			   //update count and location
-			   adultsOnOahu--;
-			   adultsOnMolokai++;
-			   boatLocation = 1;
+               //update count and location
+               adultsOnOahu--;
+               adultsOnMolokai++;
+               boatLocation = 1;
                location = 1;
-
-			   //communicating number of people on Molokai
+               
+               //communicating number of people on Molokai
                coms.speak(childrenOnMolokai + adultsOnMolokai);
               
-			   //wake everyone up and sleep on Molokai
+              //wake everyone up and sleep on Molokai
                onMolokai.wakeAll();
                onMolokai.sleep();
 			   
-			   //Make sure there is at least ONE child on Molokai
-			   Lib.assertTrue(childrenOnMolokai > 0);
+		//Make sure there is at least ONE child on Molokai
+		Lib.assertTrue(childrenOnMolokai > 0);
            }
            else if (location == 1){ //Molokai
                onMolokai.sleep();
            }
-           else 
-           {
+           else{
                System.out.println("ERROR: Location other than 0 or 1");
                Lib.assertTrue(false);
                break; 
@@ -178,56 +176,53 @@ public class Boat
 				//if everyone is not awake WAKE EM.
                onOahu.wakeAll();
                 
-				//LAST CASE: if last child on Oahu...just row to Molokai
-				if (adultsOnOahu == 0 && childrenOnOahu == 1) 
-               {
+		//LAST CASE: if last child on Oahu...just row to Molokai
+		if (adultsOnOahu == 0 && childrenOnOahu == 1){
                    
                    bg.ChildRowToMolokai();
 
-				   //update count and location
-				   childrenOnOahu--;
-				   childrenOnMolokai++;
-				   countOnBoat = 0;
+		   //update count and location
+		   childrenOnOahu--;
+		   childrenOnMolokai++;
+		   countOnBoat = 0;
                    boatLocation = 1;
                    location = 1; 
                    
-					//communicating number of people on Molokai
+		//communicating number of people on Molokai
                    coms.speak(childrenOnMolokai+adultsOnMolokai);
                    onMolokai.sleep(); //this should be the last and all ppl are on Molokai now
                     
                }
                else if (childrenOnOahu > 1){ //2 children must board boat
-					//check boat contents
-                    if (countOnBoat == 0) //if nobody 1 child boards boat
-                   {    
-						countOnBoat++;
+		//check boat contents
+                    if (countOnBoat == 0){ //if nobody 1 child boards boat
+                    	countOnBoat++;
                         boardBoat.sleep //first child boards boat and waits for second child
                         
                         childrenOnOahu--;
                         bg.ChildRowToMolokai();
 						
-						//update for when child arrives on Molokai
+			//update for when child arrives on Molokai
                         childrenOnMolokai++;
-						location = 1; 
+                        location = 1; 
                         
-						//wake other child and sleep on Molokai 
+			//wake other child and sleep on Molokai 
                         boardBoat.wake();
                         onMolokai.sleep();
                    }
-				   else if (countOnBoat == 1) //if 1 passenger SECOND child boards
-                   {  
-						countOnBoat++;
+		   else if (countOnBoat == 1){ //if 1 passenger SECOND child boards
+		   	countOnBoat++;
                         boardBoat.wake(); //wake PILOT child
                         boardBoat.sleep();
 
                         childrenOnOahu--;
                         bg.ChildRideToMolokai();
-						//System.out.println("2 children rowing to Molokai");
+			//System.out.println("2 children rowing to Molokai");
 						
                         //get off boat
-						countOnBoat = countOnBoat - 2;
+			countOnBoat = countOnBoat - 2;
 
-						//update location and count
+			//update location and count
                         boatLocation = 1;
                         location = 1; 
                         childrenOnMolokai++;
@@ -241,8 +236,7 @@ public class Boat
                   
                } 
             }
-            else if (location == 1) //Molokai
-            {
+            else if (location == 1){ //Molokai
                while (boatLocation != 1) {
                    onMolokai.sleep();
                }
@@ -250,29 +244,30 @@ public class Boat
                childrenOnMolokai--;
                bg.ChildRowToOahu();
 
-			   //update location and count
+		//update location and count
                childrenOnOahu++;
-			   boatLocation = 0;
+		boatLocation = 0;
                location = 0; 
                
 
-			   //wake all on Oahu
+		//wake all on Oahu
                onOahu.wakeAll();
                onOahu.sleep(); // go to sleep on Oahu
             }
-			else{
-				System.out.println("ERROR: Location other than 0 or 1");
-				Lib.assertTrue(false);
-				break;
-			}
+            else{
+		System.out.println("ERROR: Location other than 0 or 1");
+		Lib.assertTrue(false);
+		break;
+            	
+            }
 
-        } // while (true)
+        } 
 
         boatLock.release(); 
     }
 
    
-/*
+
     static void SampleItinerary()
     {
         // Please note that this isn't a valid solution (you can't fit
@@ -287,4 +282,4 @@ public class Boat
         bg.ChildRideToMolokai();
     }
 
-} */
+} 
