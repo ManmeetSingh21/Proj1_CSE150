@@ -130,7 +130,7 @@ public class Boat
 		//keep listening for thread count till all on Molokai
 		while(wordReceived != (children+adults)){
 			wordReceived = coms.listen();
-			System.out.println("Count on Molokai: " + wordReceived);
+			//System.out.println("Count on Molokai: " + wordReceived);
 		}
 		
 		
@@ -225,11 +225,12 @@ public class Boat
 				if(childrenOnOahu > 1){ //2 children must board boat
 					//check boat contents
 					if(countOnBoat == 0){
-						boardBoat.sleep(); //board boat and wait for second passenger
-						
-						//increment update
+						//board boat
 						countOnBoat++;						
 						childrenOnOahu--;
+						
+						boardBoat.sleep(); //first child boards boat and wait for second passenger
+						
 						
 						bg.ChildRowToMolokai(); //PILOT child
 						System.out.println("1 child boards boat");
@@ -242,12 +243,15 @@ public class Boat
 						
 					}
 					else if(countOnBoat == 1){
+						//board the boat
+					
+						countOnBoat++;
+						childrenOnOahu--;
+						
 						boardBoat.wake(); //wake PILOT child
 						boardBoat.sleep(); //sleep on boat for the ride
 						
-						//count updates
-						countOnBoat++;
-						childrenOnOahu--;
+						
 						
 						bg.ChildRideToMolokai(); //PASSENGER child
 						//FLAG: 
@@ -258,6 +262,8 @@ public class Boat
 						countOnBoat = countOnBoat - 2; //get off boat
 						location = 1;
 						boatLocation = 1;
+						
+						System.out.println(childrenOnMolokai);
 						
 						//communicate 
 						coms.speak(childrenOnMolokai + adultsOnMolokai);
