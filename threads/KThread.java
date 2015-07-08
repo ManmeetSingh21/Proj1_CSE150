@@ -183,13 +183,13 @@ public class KThread {
      */
     public static void finish() {
 	Lib.debug(dbgThread, "Finishing thread: " + currentThread.toString());
+	//boolean intStatus = Machine.interrupt().disable();
 	Machine.interrupt().disable();
-
 	ThreadQueue queueList = currentThread.joinQueue;		//the current queue list, checking if it is finished
 
-	while(queueList != null){		//check to see if there are anymore threads in the list
+	if(queueList != null){		//check to see if there are anymore in the list in the list
 		KThread thread = queueList.nextThread();
-		while(thread != null){
+		while(thread != null){		//still a thread
 			thread.ready();
 			thread = queueList.nextThread();
 		}
@@ -200,6 +200,7 @@ public class KThread {
 	toBeDestroyed = currentThread;
 	currentThread.status = statusFinished;
 	sleep();
+	//Machine.interrupt().restore(intStatus);
     }
 
     /**
@@ -279,20 +280,21 @@ public class KThread {
      */
     public void join() {
 	Lib.debug(dbgThread, "Joining to thread: " + toString());
-	if(joinQueue == null){					//creating a ThreadQueue
-		joinQueue = ThreadedKernel.scheduler.newThreadQueue(false);
-		joinQueue.acquire(this);
-	}
-
 	Lib.assertTrue(this != currentThread);			//if not correct, prints error message
 								//because a method can only be called once
-	boolean intStatus = Machine.interrupt().disable();	
-	if(this.status != statusFinished){			//checking if the thread is completed
+	boolean intStatus = Machine.interrupt().disable();
+	if(joinQueue == null){					//creating a ThreadQueue
+		joinQueue = ThreadedKernel.scheduler.newThreadQueue(true);		//false?
+		joinQueue.acquire(this);
+	}					
+		
+	if(currentThread != this && status != statusFinished){//this.status != statusFinished){			//checking if the thread is completed
+								//more conditions?
 		joinQueue.waitForAccess(currentThread);		//thread queue that another thread can receive access
 		currentThread.sleep();				//dont allow the currentThread to run
 	}
+	
 	Machine.interrupt().restore(intStatus);			//enable the interrupt
-
     }
 
     /**
