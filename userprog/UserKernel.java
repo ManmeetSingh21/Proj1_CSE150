@@ -24,6 +24,12 @@ public class UserKernel extends ThreadedKernel {
 
 	console = new SynchConsole(Machine.console());
 	
+	lock = new Lock();
+	Queue<Integer> freePages = new LinkedList<Integer>();
+	
+	for (int i = 0; i < Machine.processor().getNumPhysPages(); i++){
+			freePages.add(i);
+	}
 	Machine.processor().setExceptionHandler(new Runnable() {
 		public void run() { exceptionHandler(); }
 	    });
