@@ -18,15 +18,25 @@ import java.io.EOFException;
  * @see	nachos.vm.VMProcess
  * @see	nachos.network.NetProcess
  */
+
 public class UserProcess {
     /**
      * Allocate a new process.
      */
     public UserProcess() {
-	int numPhysPages = Machine.processor().getNumPhysPages();
-	pageTable = new TranslationEntry[numPhysPages];
-	for (int i=0; i<numPhysPages; i++)
-	    pageTable[i] = new TranslationEntry(i,i, true,false,false,false);
+	
+		int numPhysPages = Machine.processor().getNumPhysPages();
+		pageTable = new TranslationEntry[numPhysPages];
+		for (int i=0; i<numPhysPages; i++)
+			pageTable[i] = new TranslationEntry(i,i, true,false,false,false);
+			
+		//create table large enough to handle up to 16 files at one time
+		
+		fdTable = new OpenFile[16]; 
+		
+		//fileDescriptors 0 and 1 must refer to standard input and output
+		fdTable[0] = UserKernel.console.openForReading(); //STDIN
+		fdTable[1] = UserKernel.console.openForWriting(); //STDOUT
     }
     
     /**
@@ -345,10 +355,163 @@ public class UserProcess {
 	Lib.assertNotReached("Machine.halt() did not halt machine!");
 	return 0;
     }
+	
+	
+	//----------------------------- CREATE/OPEN/WRITE/CLOSE/UNLINK -------------------------------//
+	
+	private int handleCreate(int name){
+		//read filename from virtual memory 
+		String fileName = readVirtualMemoryString(name,256); //max 256 bytes
+		
+		//check filename
+		if (fileName = null){
+			return -1; // error
+		}
+
+		//open file by creating OpenFile object via StubFileSystem
+		OpenFile file = Machine.StubFileSystem.open(fileName,true); //truncate = true it will create file with zero length if doesnt exist
+			
+		//check for open fdTable
+		for(int i=2; i<16; i++){
+			if(fdTable[i] == null){
+				fdTable[i] = file;
+				return i; // return value of fileDescriptor
+			}
+		}
+		
+		return -1; //if no fdTable open...error
+			
+	}
+	
+	private int handleOpen(int name){
+		//read filename from virtual memory 
+		String fileName = readVirtualMemoryString(name,256); //max 256 bytes
+		
+		//check filename
+		if (fileName = null){
+			return -1; // error
+		}
+		
+		//open file by creating OpenFile object via StubFileSystem
+		OpenFile file = Machine.StubFileSystem.open(fileName,false);
+		
+		//check for open fdTable
+		for(int i=2; i<16; i++){
+			if(fdTable[i] == null){
+				fdTable[i] = file;
+				return i; // return value of fileDescriptor
+			}
+		}
+		
+		return -1; //if no fdTable open...error
+		
+	}
+	
+	private int handleWrite(int fileDescriptor, void buffer, int count){
+		//check that fileDescriptor index is valid
+		if(fileDescriptor < 0 || fileDescriptor > 16){
+			return -1; // error
+		}
+		
+		//validate fileDescriptor points to a file
+		OpenFile writeTo = fdTable[fileDescriptor];
+		if(writeTo == null){
+			return -1; // error
+		}
+		
+		if(count == 0){
+			return = 0; //nothing to write so DONE 
+		}		
+		else{
+			//access buffer
+			byte[] bufferBytes = new byte[count]; //convert count to appropriate number of bytes
+			int bytesRead = readVirtualMemory(buffer, bufferBytes);
+				
+			if( bytesRead < 0 ){
+				return -1; //error
+			}
+				
+			return writeTo.write(bufferBytes, 0, count); // write() returns number of bytes written
+		}
+	}
+	
+	private int handleRead(int fileDescriptor, void buffer, int count){
+		//check that fileDescriptor index is valid
+		if(fileDescriptor < 0 || fileDescriptor > 16){
+			return -1; // error
+		}
+		
+		//validate fileDescriptor points to a file
+		OpenFile readFrom = fdTable[fileDescriptor];
+		if(readFrom == null){
+			return -1; // error
+		}
+		else{
+			if(count == 0)
+				return 0;
+			else{
+				byte[] bufferBytes = new byte[count];
+				bytesRead = readFrom.read(bufferBytes, 0, count); //read from file accessed by fileDescriptor
+				
+				writeVirtualMemory(buffer, bufferBytes); //write bytes read to the buffer
+				return bytesRead;
+			}
+		}
+	}
+	
+	private int handleClose(int fileDescriptor){
+		OpenFile file = fdTable[fileDescriptor];
+		
+		if (file == null){
+			return -1; //error
+		}
+		else{
+			fdTable[fileDescriptor].close();
+			fdTable[fileDescriptor] = null; //make sure slot empty in table
+			return 0; // success
+			
+		}
+	}
+	
+	private int handleUnlink(int name){
+		
+		//get file name in String format
+		String fileName = readVirtualMemoryString(name,256);
+		
+		//use handleOpen to find fileDescriptor if it exists
+		int fileDescriptor = handleOpen(name);
+		
+		if(fileDescriptor>=0 || fileDescriptor <=16){
+			OpenFile file = fdTable[fileDescriptor];
+		}
+		
+		boolean removed = false;
+		
+		if (file == null){
+			removed = StubFileSystem.remove(fileName);
+		}
+		else{
+			//close the file first
+			fdTable[fileDescriptor].close(); 
+			fdTable[fileDescriptor] = null;
+			
+			//delete file from the system
+			removed = StubFileSystem.remove(fileName);
+		}
+		
+		if(removed == true)
+			return 0;
+		else if (removed == false)
+			return -1;
+		else
+			return -1;
+	}
+	
+	//--------------------------------------------------------------------------------------------//
 
 
     private static final int
-        syscallHalt = 0,
+    syscallHalt = 0,
 	syscallExit = 1,
 	syscallExec = 2,
 	syscallJoin = 3,
@@ -387,10 +550,28 @@ public class UserProcess {
      * @param	a3	the fourth syscall argument.
      * @return	the value to be returned to the user.
      */
+	 
+	//changed handleSyscall to handle all Task I system calls
     public int handleSyscall(int syscall, int a0, int a1, int a2, int a3) {
 	switch (syscall) {
 	case syscallHalt:
 	    return handleHalt();
+	case syscallExit:
+	case syscallExec:
+	case syscallJoin:
+	
+	case syscallCreate:
+		return handleCreate(int a0);
+	case syscallOpen:
+		return handleOpen(int a0);
+	case syscallRead:
+		return handleRead(int a0, int a1, int a2);
+	case syscallWrite:
+		return handleWrite(int a0, int a1, int a2);
+	case syscallClose:
+		return handleClose(int a0);
+	case syscallUnlink:
+		return handleUnlink(int a0):
 
 
 	default:
