@@ -483,21 +483,24 @@ public class UserProcess {
 		
 		if(fileDescriptor>=0 || fileDescriptor <=15){
 			OpenFile file = fdTable[fileDescriptor];
+		
+			if (file == null){
+			removed = UserKernel.fileSystem.remove(fileName);
+			}
+			else{
+				//close the file first
+				fdTable[fileDescriptor].close(); 
+				fdTable[fileDescriptor] = null;
+			
+				//delete file from the system
+				removed = UserKernel.fileSystem.remove(fileName);
+			}
+		}
+		else{
+			removed = UserKernel.fileSystem.remove(fileName);
 		}
 		
 		boolean removed = false;
-		
-		if (file == null){
-			removed = UserKernel.fileSystem.remove(fileName);
-		}
-		else{
-			//close the file first
-			fdTable[fileDescriptor].close(); 
-			fdTable[fileDescriptor] = null;
-			
-			//delete file from the system
-			removed = UserKernel.fileSystem.remove(fileName);
-		}
 		
 		if(removed == true)
 			return 0;
