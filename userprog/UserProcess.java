@@ -142,14 +142,32 @@ public class UserProcess {
 	Lib.assertTrue(offset >= 0 && length >= 0 && offset+length <= data.length);
 
 	byte[] memory = Machine.processor().getMemory();
+
+	int VPN1 = Processor.pageFromAddress(vaddr)
+	int offset1 = Processor.offsetFromAddress(vaddr)
+	int VPNend = Processor.pageFromAddress(vaddr + length);
 	
-	// for now, just assume that virtual addresses equal physical addresses
-	if (vaddr < 0 || vaddr >= memory.length)
-	    return 0;
+	TranslationEntry entry = getTranslationEntry(VPN1, false);
+	if (entry == null){
+		return 0;
+	}
 
-	int amount = Math.min(length, memory.length-vaddr);
-	System.arraycopy(memory, vaddr, data, offset, amount);
 
+	int amount = Math.min(length, pageSize - offset1);
+	System.arraycopy(memory, Processor.makeAddress(entry.ppn, offset1), data, offset, amount);
+	offset += amount
+	
+	for (int i = VPN1 +1; i<= VPNend; i++){
+		entry= getTranslationEntry(i, false);
+		if (entry== null){
+			return amount;
+		}
+		int length2 = Math.min(length-amount, pageSize);
+		System.arraycopy(memory, Processor.makeAddress(entry.ppn, 0), data, offset, length2);
+		offset += length2;
+		amount += length2;
+	}
+	
 	return amount;
     }
 
@@ -185,17 +203,49 @@ public class UserProcess {
 	Lib.assertTrue(offset >= 0 && length >= 0 && offset+length <= data.length);
 
 	byte[] memory = Machine.processor().getMemory();
+
+	int VPN1 = Processor.pageFromAddress(vaddr)
+	int offset1 = Processor.offsetFromAddress(vaddr)
+	int VPNend = Processor.pageFromAddress(vaddr + length);
 	
-	// for now, just assume that virtual addresses equal physical addresses
-	if (vaddr < 0 || vaddr >= memory.length)
-	    return 0;
+	TranslationEntry entry = getTranslationEntry(VPN1, true);
+	if (entry == null){
+		return 0;
+	}
 
-	int amount = Math.min(length, memory.length-vaddr);
-	System.arraycopy(data, offset, memory, vaddr, amount);
 
+	int amount = Math.min(length, pageSize - offset1);
+	System.arraycopy(data, offset, memory, Processor.makeAddress(entry.ppn, offset1), amount);
+	offset += amount
+	
+	for (int i = VPN1 +1; i<= VPNend; i++){
+		entry= getTranslationEntry(i, true);
+		if (entry== null){
+			return amount;
+		}
+		int length2 = Math.min(length-amount, pageSize);
+		System.arraycopy(data, offset, memory, Processor.makeAddress(entry.ppn, 0) length2);
+		offset += length2;
+		amount += length2;
+	}
+	
 	return amount;
     }
 
+     protected TranslationEntry getTranslationEntry(int virtual, boolean write) {
+		
+		if (virtual < 0 || virtual >= numPages)
+			return null;
+		TranslationEntry result = pageTable[virtual];
+		if (result == null)
+			return null;
+		if (result.readOnly && write)
+			return null;
+		result.used = true;
+		if (write)
+			result.dirty = true;
+		return result;
+	}
     /**
      * Load the executable with the specified name into this process, and
      * prepare to pass it the specified arguments. Opens the executable, reads
@@ -292,12 +342,14 @@ public class UserProcess {
      * @return	<tt>true</tt> if the sections were successfully loaded.
      */
     protected boolean loadSections() {
-	if (numPages > Machine.processor().getNumPhysPages()) {
+	int[] physpagenums = UserKernel.allocatePages(numPages);
+	
+	if (physpagenums == null) {
 	    coff.close();
 	    Lib.debug(dbgProcess, "\tinsufficient physical memory");
 	    return false;
 	}
-
+	pageTable= new TranslationEntry[numPages];
 	// load sections
 	for (int s=0; s<coff.getNumSections(); s++) {
 	    CoffSection section = coff.getSection(s);
@@ -307,12 +359,16 @@ public class UserProcess {
 
 	    for (int i=0; i<section.getLength(); i++) {
 		int vpn = section.getFirstVPN()+i;
-
+		int ppn = physpagenums[vpn];
+		pageTable[vpn] = new TranslationEntry(vpn, ppn, true, section.isReadOnly(), false, false);
 		// for now, just assume virtual addresses=physical addresses
 		section.loadPage(i, vpn);
 	    }
 	}
 	
+		for(int i= numPages-stackPages -1; i<numPages; i++){
+			pageTable[i]= new TranslationEntry(i, physpagenums[i], true, false, false, false)
+		}
 	return true;
     }
 
@@ -320,6 +376,10 @@ public class UserProcess {
      * Release any resources allocated by <tt>loadSections()</tt>.
      */
     protected void unloadSections() {
+    	coff.close();
+    	for (int i= 0; i<numPages; i++)
+    		UserKernel.releasePage(pageTable[i].ppn);
+    	pageTable = null;
     }    
 
     /**
