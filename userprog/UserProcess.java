@@ -32,7 +32,7 @@ public class UserProcess {
 			
 		//create table large enough to handle up to 16 files at one time
 		
-		fdTable = new OpenFile[16]; 
+		OpenFile[] fdTable = new OpenFile[16]; 
 		
 		//fileDescriptors 0 and 1 must refer to standard input and output
 		fdTable[0] = UserKernel.console.openForReading(); //STDIN
@@ -364,12 +364,12 @@ public class UserProcess {
 		String fileName = readVirtualMemoryString(name,256); //max 256 bytes
 		
 		//check filename
-		if (fileName = null){
+		if (fileName == null){
 			return -1; // error
 		}
 
 		//open file by creating OpenFile object via StubFileSystem
-		OpenFile file = Machine.StubFileSystem.open(fileName,true); //truncate = true it will create file with zero length if doesnt exist
+		OpenFile file = Machine.StubFileSystem().open(fileName,true); //truncate = true it will create file with zero length if doesnt exist
 			
 		//check for open fdTable
 		for(int i=2; i<16; i++){
@@ -388,12 +388,12 @@ public class UserProcess {
 		String fileName = readVirtualMemoryString(name,256); //max 256 bytes
 		
 		//check filename
-		if (fileName = null){
+		if (fileName == null){
 			return -1; // error
 		}
 		
 		//open file by creating OpenFile object via StubFileSystem
-		OpenFile file = Machine.StubFileSystem.open(fileName,false);
+		OpenFile file = Machine.StubFileSystem().open(fileName,false);
 		
 		//check for open fdTable
 		for(int i=2; i<16; i++){
@@ -407,7 +407,7 @@ public class UserProcess {
 		
 	}
 	
-	private int handleWrite(int fileDescriptor, void buffer, int count){
+	private int handleWrite(int fileDescriptor, int buffer, int count){
 		//check that fileDescriptor index is valid
 		if(fileDescriptor < 0 || fileDescriptor > 16){
 			return -1; // error
@@ -420,7 +420,7 @@ public class UserProcess {
 		}
 		
 		if(count == 0){
-			return = 0; //nothing to write so DONE 
+			return 0; //nothing to write so DONE 
 		}		
 		else{
 			//access buffer
@@ -435,7 +435,7 @@ public class UserProcess {
 		}
 	}
 	
-	private int handleRead(int fileDescriptor, void buffer, int count){
+	private int handleRead(int fileDescriptor, int buffer, int count){
 		//check that fileDescriptor index is valid
 		if(fileDescriptor < 0 || fileDescriptor > 16){
 			return -1; // error
@@ -451,7 +451,7 @@ public class UserProcess {
 				return 0;
 			else{
 				byte[] bufferBytes = new byte[count];
-				bytesRead = readFrom.read(bufferBytes, 0, count); //read from file accessed by fileDescriptor
+				int bytesRead = readFrom.read(bufferBytes, 0, count); //read from file accessed by fileDescriptor
 				
 				writeVirtualMemory(buffer, bufferBytes); //write bytes read to the buffer
 				return bytesRead;
@@ -488,7 +488,7 @@ public class UserProcess {
 		boolean removed = false;
 		
 		if (file == null){
-			removed = StubFileSystem.remove(fileName);
+			removed = StubFileSystem().remove(fileName);
 		}
 		else{
 			//close the file first
@@ -554,29 +554,29 @@ public class UserProcess {
 	//changed handleSyscall to handle all Task I system calls
     public int handleSyscall(int syscall, int a0, int a1, int a2, int a3) {
 	switch (syscall) {
-	case syscallHalt:
-	    return handleHalt();
-	case syscallExit:
-	case syscallExec:
-	case syscallJoin:
+		case syscallHalt:
+		    return handleHalt();
+		case syscallExit:
+		case syscallExec:
+		case syscallJoin:
+		
+		case syscallCreate:
+			return handleCreate(a0);
+		case syscallOpen:
+			return handleOpen(a0);
+		case syscallRead:
+			return handleRead(a0, a1, a2);
+		case syscallWrite:
+			return handleWrite(a0, a1, a2);
+		case syscallClose:
+			return handleClose(a0);
+		case syscallUnlink:
+			return handleUnlink(a0);
 	
-	case syscallCreate:
-		return handleCreate(int a0);
-	case syscallOpen:
-		return handleOpen(int a0);
-	case syscallRead:
-		return handleRead(int a0, int a1, int a2);
-	case syscallWrite:
-		return handleWrite(int a0, int a1, int a2);
-	case syscallClose:
-		return handleClose(int a0);
-	case syscallUnlink:
-		return handleUnlink(int a0):
-
-
-	default:
-	    Lib.debug(dbgProcess, "Unknown syscall " + syscall);
-	    Lib.assertNotReached("Unknown system call!");
+	
+		default:
+		    Lib.debug(dbgProcess, "Unknown syscall " + syscall);
+		    Lib.assertNotReached("Unknown system call!");
 	}
 	return 0;
     }
