@@ -32,7 +32,7 @@ public class UserProcess {
 			
 		//create table large enough to handle up to 16 files at one time
 		
-		OpenFile[] fdTable = new OpenFile[16]; 
+		fdTable = new OpenFile[16]; 
 		
 		//fileDescriptors 0 and 1 must refer to standard input and output
 		fdTable[0] = UserKernel.console.openForReading(); //STDIN
@@ -369,7 +369,7 @@ public class UserProcess {
 		}
 
 		//open file by creating OpenFile object via StubFileSystem
-		OpenFile file = Machine.StubFileSystem().open(fileName,true); //truncate = true it will create file with zero length if doesnt exist
+		OpenFile file = UserKernel.fileSystem.open(fileName,true); //truncate = true it will create file with zero length if doesnt exist
 			
 		//check for open fdTable
 		for(int i=2; i<16; i++){
@@ -393,7 +393,7 @@ public class UserProcess {
 		}
 		
 		//open file by creating OpenFile object via StubFileSystem
-		OpenFile file = Machine.StubFileSystem().open(fileName,false);
+		OpenFile file = UserKernel.fileSystem.open(fileName,false);
 		
 		//check for open fdTable
 		for(int i=2; i<16; i++){
@@ -488,7 +488,7 @@ public class UserProcess {
 		boolean removed = false;
 		
 		if (file == null){
-			removed = StubFileSystem().remove(fileName);
+			removed = UserKernel.fileSystem.remove(fileName);
 		}
 		else{
 			//close the file first
@@ -496,7 +496,7 @@ public class UserProcess {
 			fdTable[fileDescriptor] = null;
 			
 			//delete file from the system
-			removed = StubFileSystem.remove(fileName);
+			removed = UserKernel.fileSystem.remove(fileName);
 		}
 		
 		if(removed == true)
@@ -616,6 +616,7 @@ public class UserProcess {
 
     /** This process's page table. */
     protected TranslationEntry[] pageTable;
+   
     /** The number of contiguous pages occupied by the program. */
     protected int numPages;
 
@@ -627,4 +628,7 @@ public class UserProcess {
 	
     private static final int pageSize = Processor.pageSize;
     private static final char dbgProcess = 'a';
+    
+    //ADDING FILE TABLE
+     protected OpenFile[] fdTable;
 }
