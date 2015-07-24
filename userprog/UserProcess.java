@@ -409,7 +409,7 @@ public class UserProcess {
 	
 	private int handleWrite(int fileDescriptor, int buffer, int count){
 		//check that fileDescriptor index is valid
-		if(fileDescriptor < 0 || fileDescriptor > 16){
+		if(fileDescriptor < 0 || fileDescriptor > 15){
 			return -1; // error
 		}
 		
@@ -437,7 +437,7 @@ public class UserProcess {
 	
 	private int handleRead(int fileDescriptor, int buffer, int count){
 		//check that fileDescriptor index is valid
-		if(fileDescriptor < 0 || fileDescriptor > 16){
+		if(fileDescriptor < 0 || fileDescriptor > 15){
 			return -1; // error
 		}
 		
@@ -481,7 +481,7 @@ public class UserProcess {
 		//use handleOpen to find fileDescriptor if it exists
 		int fileDescriptor = handleOpen(name);
 		
-		if(fileDescriptor>=0 || fileDescriptor <=16){
+		if(fileDescriptor>=0 || fileDescriptor <=15){
 			OpenFile file = fdTable[fileDescriptor];
 		}
 		
