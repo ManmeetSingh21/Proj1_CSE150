@@ -475,37 +475,29 @@ public class UserProcess {
 	
 	private int handleUnlink(int name){
 		
+		boolean removed = false;
+		
 		//get file name in String format
 		String fileName = readVirtualMemoryString(name,256);
 		
 		//use handleOpen to find fileDescriptor if it exists
 		int fileDescriptor = handleOpen(name);
 		
-		if(fileDescriptor>=0 || fileDescriptor <=15){
-			OpenFile file = fdTable[fileDescriptor];
-		
-			if (file == null){
+		if(fileDescriptor == -1){
+			//does not exist in fdTable
 			removed = UserKernel.fileSystem.remove(fileName);
-			}
-			else{
-				//close the file first
-				fdTable[fileDescriptor].close(); 
-				fdTable[fileDescriptor] = null;
-			
-				//delete file from the system
-				removed = UserKernel.fileSystem.remove(fileName);
-			}
 		}
 		else{
+			//close the file first
+			fdTable[fileDescriptor].close();
+			fdTable[fileDescriptor] = null;
+			
+			//delete file from the system
 			removed = UserKernel.fileSystem.remove(fileName);
 		}
-		
-		boolean removed = false;
 		
 		if(removed == true)
 			return 0;
-		else if (removed == false)
-			return -1;
 		else
 			return -1;
 	}
