@@ -630,5 +630,5 @@ public class UserProcess {
     private static final char dbgProcess = 'a';
     
     //ADDING FILE TABLE
-     protected OpenFile[] fdTable;
+    protected OpenFile[] fdTable;
 }
