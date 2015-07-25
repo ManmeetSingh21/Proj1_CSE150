@@ -157,10 +157,10 @@ public class LotteryScheduler extends PriorityScheduler {
             
            
             
-            for (Iterator<KThread> thread = waitQueue.iterator())
+            for (Iterator<KThread> thread = waitQueue.iterator()){
                 
                 Sum[i++] = lotteryTotal += getThreadState(thread).getEffectivePriority();
-            
+            }
             int L = random.nextInt(lotteryTotal);
             
            
