@@ -1,5 +1,5 @@
 package nachos.userprog;
-
+import java.util.LinkedList;
 import nachos.machine.*;
 import nachos.threads.*;
 import nachos.userprog.*;
@@ -23,6 +23,13 @@ public class UserKernel extends ThreadedKernel {
 	super.initialize(args);
 
 	console = new SynchConsole(Machine.console());
+	
+	lock = new Lock();
+    	freePages = new LinkedList<Integer>();
+    
+    	for (int i = 0; i < Machine.processor().getNumPhysPages(); i++){
+            freePages.add(i);
+    }
 	
 	Machine.processor().setExceptionHandler(new Runnable() {
 		public void run() { exceptionHandler(); }
@@ -93,7 +100,6 @@ public class UserKernel extends ThreadedKernel {
 	super.run();
 
 	UserProcess process = UserProcess.newUserProcess();
-	
 	String shellProgram = Machine.getShellProgramName();	
 	Lib.assertTrue(process.execute(shellProgram, new String[] { }));
 
@@ -106,10 +112,33 @@ public class UserKernel extends ThreadedKernel {
     public void terminate() {
 	super.terminate();
     }
+	
+    public static int[] allocatePages(int number){
+        lock.acquire();
+        if (freePages.size() < number){
+            lock.release();
+            return null;
+        }
+        int[] current = new int[number];
+
+        for(int i=0; i<number; i++)
+            current[i]=freePages.remove();
+
+        lock.release;
+        return current 
+    }
+
+    public static void deallocatePages(int physPages){
+        lock.acquire();
+        freePages.add(physPages);
+        lock.release();
+    }
 
     /** Globally accessible reference to the synchronized console. */
     public static SynchConsole console;
 
     // dummy variables to make javac smarter
     private static Coff dummy1 = null;
+    public static LinkedList<Integer> freePages;
+    public static Lock lock;
 }
