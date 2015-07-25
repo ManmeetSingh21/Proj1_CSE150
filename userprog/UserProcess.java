@@ -143,8 +143,8 @@ public class UserProcess {
 
 	byte[] memory = Machine.processor().getMemory();
 
-	int VPN1 = Processor.pageFromAddress(vaddr)
-	int offset1 = Processor.offsetFromAddress(vaddr)
+	int VPN1 = Processor.pageFromAddress(vaddr);
+	int offset1 = Processor.offsetFromAddress(vaddr);
 	int VPNend = Processor.pageFromAddress(vaddr + length);
 	
 	TranslationEntry entry = getTranslationEntry(VPN1, false);
@@ -155,7 +155,7 @@ public class UserProcess {
 
 	int amount = Math.min(length, pageSize - offset1);
 	System.arraycopy(memory, Processor.makeAddress(entry.ppn, offset1), data, offset, amount);
-	offset += amount
+	offset += amount;
 	
 	for (int i = VPN1 +1; i<= VPNend; i++){
 		entry= getTranslationEntry(i, false);
@@ -204,8 +204,8 @@ public class UserProcess {
 
 	byte[] memory = Machine.processor().getMemory();
 
-	int VPN1 = Processor.pageFromAddress(vaddr)
-	int offset1 = Processor.offsetFromAddress(vaddr)
+	int VPN1 = Processor.pageFromAddress(vaddr);
+	int offset1 = Processor.offsetFromAddress(vaddr);
 	int VPNend = Processor.pageFromAddress(vaddr + length);
 	
 	TranslationEntry entry = getTranslationEntry(VPN1, true);
@@ -216,7 +216,7 @@ public class UserProcess {
 
 	int amount = Math.min(length, pageSize - offset1);
 	System.arraycopy(data, offset, memory, Processor.makeAddress(entry.ppn, offset1), amount);
-	offset += amount
+	offset += amount;
 	
 	for (int i = VPN1 +1; i<= VPNend; i++){
 		entry= getTranslationEntry(i, true);
@@ -367,7 +367,7 @@ public class UserProcess {
 	}
 	
 		for(int i= numPages-stackPages -1; i<numPages; i++){
-			pageTable[i]= new TranslationEntry(i, physpagenums[i], true, false, false, false)
+			pageTable[i]= new TranslationEntry(i, physpagenums[i], true, false, false, false);
 		}
 	return true;
     }
