@@ -444,6 +444,12 @@ public class UserProcess {
 	}
 	
 	private int handleOpen(int name){
+		
+		//check that name gives a valid address
+		if(name < 0){
+			return -1;
+		}
+	
 		//read filename from virtual memory 
 		String fileName = readVirtualMemoryString(name,256); //max 256 bytes
 		
@@ -454,6 +460,10 @@ public class UserProcess {
 		
 		//open file by creating OpenFile object via StubFileSystem
 		OpenFile file = UserKernel.fileSystem.open(fileName,false);
+		
+		if(file == null){ // make sure file exists
+			return -1;
+		}
 		
 		//check for open fdTable
 		for(int i=2; i<16; i++){
@@ -508,7 +518,7 @@ public class UserProcess {
 		}
 		else{
 			if(count == 0)
-				return 0;
+				return 0; //nothing to read so done
 			else{
 				byte[] bufferBytes = new byte[count];
 				int bytesRead = readFrom.read(bufferBytes, 0, count); //read from file accessed by fileDescriptor
