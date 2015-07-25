@@ -224,7 +224,7 @@ public class UserProcess {
 			return amount;
 		}
 		int length2 = Math.min(length-amount, pageSize);
-		System.arraycopy(data, offset, memory, Processor.makeAddress(entry.ppn, 0) length2);
+		System.arraycopy(data, offset, memory, Processor.makeAddress(entry.ppn, 0), length2);
 		offset += length2;
 		amount += length2;
 	}
@@ -378,7 +378,7 @@ public class UserProcess {
     protected void unloadSections() {
     	coff.close();
     	for (int i= 0; i<numPages; i++)
-    		UserKernel.releasePage(pageTable[i].ppn);
+    		UserKernel.deallocatePages(pageTable[i].ppn);
     	pageTable = null;
     }    
 
