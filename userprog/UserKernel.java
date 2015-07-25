@@ -124,8 +124,8 @@ public class UserKernel extends ThreadedKernel {
         for(int i=0; i<number; i++)
             current[i]=freePages.remove();
 
-        lock.release;
-        return current 
+        lock.release();
+        return current;
     }
 
     public static void deallocatePages(int physPages){
