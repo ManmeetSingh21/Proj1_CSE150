@@ -34,9 +34,12 @@ public class UserProcess {
 		
 		fdTable = new OpenFile[MAXFD]; //MAXFD = 16 
 		
-		//fileDescriptors 0 and 1 must refer to standard input and output
+		//fileDescriptors 0 and 1 must refer to standard input and out (cant be null)
 		fdTable[0] = UserKernel.console.openForReading(); //STDIN
+		Lib.assertTrue(fdTable[0] != null);
 		fdTable[1] = UserKernel.console.openForWriting(); //STDOUT
+		Lib.assertTrue(fdTable[1] != null);
+
     }
     
     /**
@@ -411,21 +414,24 @@ public class UserProcess {
 	
 	private int handleCreate(int name){
 		//read filename from virtual memory 
+		Lib.debug(dbgProcess, "handleCreate()");
 		String fileName = readVirtualMemoryString(name,256); //max 256 bytes
+		Lib.debug(dbgProcess, "filename: " + fileName);
 		
-		//check filename
-		if (fileName == null){
-			return -1; // error
-		}
-
 		//open file by creating OpenFile object via StubFileSystem
 		OpenFile file = UserKernel.fileSystem.open(fileName,true); //truncate = true it will create file with zero length if doesnt exist
-			
-		//check for open fdTable
-		for(int i=2; i<MAXFD; i++){
-			if(fdTable[i] == null){
-				fdTable[i] = file;
-				return i; // return value of fileDescriptor
+		
+		//check file
+		if (file == null){
+			return -1; // error
+		}
+		else{
+			//check for open fdTable
+			for(int i=2; i<MAXFD; i++){
+				if(fdTable[i] == null){
+					fdTable[i] = file;
+					return i; // return value of fileDescriptor
+				}
 			}
 		}
 		
@@ -434,14 +440,12 @@ public class UserProcess {
 	}
 	
 	private int handleOpen(int name){
-		
-		//check that name gives a valid address
-		if(name < 0){
-			return -1;
-		}
+	
 	
 		//read filename from virtual memory 
+		Lib.debug(dbgProcess, "handleOpen()");
 		String fileName = readVirtualMemoryString(name,256); //max 256 bytes
+		Lib.debug(dbgProcess, "filename: " + fileName);
 		
 		//check filename
 		if (fileName == null){
@@ -454,12 +458,13 @@ public class UserProcess {
 		if(file == null){ // make sure file exists
 			return -1;
 		}
-		
-		//check for open fdTable
-		for(int i=2; i<MAXFD; i++){
-			if(fdTable[i] == null){
-				fdTable[i] = file;
-				return i; // return value of fileDescriptor
+		else{
+			//check for open fdTable
+			for(int i=2; i<MAXFD; i++){
+				if(fdTable[i] == null){
+					fdTable[i] = file;
+					return i; // return value of fileDescriptor
+				}
 			}
 		}
 		
