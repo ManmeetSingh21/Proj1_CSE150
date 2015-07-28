@@ -68,18 +68,18 @@ public class UserKernel extends ThreadedKernel {
 	return ((UThread) KThread.currentThread()).process;
     }
 
-    	static int pageCount() {
+    	public static int pageCount() {
 		return freePages.size();
 	}
 	
-	static void deallocatePage(int physpagenum) {
+	public static void deallocatePage(int physpagenum) {
 		
 		lock.acquire();
 		freePages.add(new Integer(physpagenum));
 		lock.release();
 	}
 	
-	static int[] allocatePage(int number) {
+	public static int[] allocatePage(int number) {
 		
 		lock.acquire();
 		if (freePages.size() < number) {
