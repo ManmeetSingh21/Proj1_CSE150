@@ -6,6 +6,7 @@ import nachos.machine.*;
 import java.util.TreeSet;
 import java.util.HashSet;
 import java.util.Iterator;
+import nachos.machine.Lib;
 
 /**
  * A scheduler that chooses threads using a lottery.
