@@ -145,27 +145,22 @@ public class UserProcess {
 
 	int VPN1 = Processor.pageFromAddress(vaddr);
 	int offset1 = Processor.offsetFromAddress(vaddr);
-	int VPNend = Processor.pageFromAddress(vaddr + length);
+	int amount = 0;
 	
-	TranslationEntry entry = getTranslationEntry(VPN1, false);
-	if (entry == null){
-		return 0;
-	}
-
-
-	int amount = Math.min(length, pageSize - offset1);
-	System.arraycopy(memory, Processor.makeAddress(entry.ppn, offset1), data, offset, amount);
-	offset += amount;
+	for(int vpn = VPN1; length > 0; ++vpn) {
+			int length2 = Math.min(length - amount, pageSize - offset1);
+			TranslationEntry Entry = getEntry(vpn, false);
+			if (Entry == null) {
+				return amount;
+			}
+			System.arraycopy(memory, Processor.makeAddress(Entry.ppn, offset1), data, offset, length2);
+			offset += length2;
+			amount += length2;
+			length -= length2;
+			
+			offset1 = 0;
 	
-	for (int i = VPN1 +1; i<= VPNend; i++){
-		entry= getTranslationEntry(i, false);
-		if (entry== null){
-			return amount;
-		}
-		int length2 = Math.min(length-amount, pageSize);
-		System.arraycopy(memory, Processor.makeAddress(entry.ppn, 0), data, offset, length2);
-		offset += length2;
-		amount += length2;
+	
 	}
 	
 	return amount;
@@ -206,46 +201,38 @@ public class UserProcess {
 
 	int VPN1 = Processor.pageFromAddress(vaddr);
 	int offset1 = Processor.offsetFromAddress(vaddr);
-	int VPNend = Processor.pageFromAddress(vaddr + length);
+	int amount = 0;
 	
-	TranslationEntry entry = getTranslationEntry(VPN1, true);
-	if (entry == null){
-		return 0;
-	}
-
-
-	int amount = Math.min(length, pageSize - offset1);
-	System.arraycopy(data, offset, memory, Processor.makeAddress(entry.ppn, offset1), amount);
-	offset += amount;
-	
-	for (int i = VPN1 +1; i<= VPNend; i++){
-		entry= getTranslationEntry(i, true);
-		if (entry== null){
+	for (int vpn = VPN1; length > 0; ++vpn) {
+		int length2 = Math.min(length - amount, pageSize - offset1);
+		TranslationEntry Entry = getEntry(vpn, true);
+		if (Entry == null) {
 			return amount;
 		}
-		int length2 = Math.min(length-amount, pageSize);
-		System.arraycopy(data, offset, memory, Processor.makeAddress(entry.ppn, 0), length2);
+		System.arraycopy(data, offset, memory, Processor.makeAddress(Entry.ppn, offset1), length2);
 		offset += length2;
 		amount += length2;
-	}
+		length -= length2;
+		offset1 = 0;
+		}
 	
 	return amount;
     }
 
-     protected TranslationEntry getTranslationEntry(int virtual, boolean write) {
+     public TranslationEntry getEntry(int virtual, boolean write) {
+		if (virtual >= pageTable.length) {
+			return null;
+		}
 		
-		if (virtual < 0 || virtual >= numPages)
+		if (pageTable[virtual].readOnly && write) {
 			return null;
-		TranslationEntry result = pageTable[virtual];
-		if (result == null)
-			return null;
-		if (result.readOnly && write)
-			return null;
-		result.used = true;
-		if (write)
-			result.dirty = true;
-		return result;
+		}
+		
+		pageTable[virtual].used = true;
+		pageTable[virtual].dirty |= write;
+		return pageTable[virtual];
 	}
+	
     /**
      * Load the executable with the specified name into this process, and
      * prepare to pass it the specified arguments. Opens the executable, reads
@@ -342,7 +329,7 @@ public class UserProcess {
      * @return	<tt>true</tt> if the sections were successfully loaded.
      */
     protected boolean loadSections() {
-	int[] physpagenums = UserKernel.allocatePages(numPages);
+	int[] physpagenums = UserKernel.allocatePage(numPages);
 	
 	if (physpagenums == null) {
 	    coff.close();
@@ -362,12 +349,13 @@ public class UserProcess {
 		int ppn = physpagenums[vpn];
 		pageTable[vpn] = new TranslationEntry(vpn, ppn, true, section.isReadOnly(), false, false);
 		// for now, just assume virtual addresses=physical addresses
-		section.loadPage(i, vpn);
+		section.loadPage(i, ppn);
 	    }
 	}
-	
-		for(int i= numPages-stackPages -1; i<numPages; i++){
-			pageTable[i]= new TranslationEntry(i, physpagenums[i], true, false, false, false);
+		int num = stackPages +1;
+		for(int i= 0; i< num; ++i){
+			int j = numPages - num + i;
+			pageTable[j]= new TranslationEntry(j, physpagenums[j], true, false, false, false);
 		}
 	return true;
     }
@@ -376,10 +364,12 @@ public class UserProcess {
      * Release any resources allocated by <tt>loadSections()</tt>.
      */
     protected void unloadSections() {
-    	coff.close();
-    	for (int i= 0; i<numPages; i++)
-    		UserKernel.deallocatePages(pageTable[i].ppn);
+    	for (int i= 0; i<numPages; i++){
+    		UserKernel.deallocatePage(pageTable[i].ppn);
+    	}
     	pageTable = null;
+    	coff.close();
+
     }    
 
     /**
