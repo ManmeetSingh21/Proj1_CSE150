@@ -24,16 +24,16 @@ public class UserKernel extends ThreadedKernel {
 
 	console = new SynchConsole(Machine.console());
 	
-	lock = new Lock();
-    	freePages = new LinkedList<Integer>();
-    
-    	for (int i = 0; i < Machine.processor().getNumPhysPages(); i++){
-            freePages.add(i);
-    }
-	
 	Machine.processor().setExceptionHandler(new Runnable() {
 		public void run() { exceptionHandler(); }
 	    });
+    
+    	lock = new Lock();
+	freePages = new LinkedList();
+	for (int i = 0; i < Machine.processor().getNumPhysPages(); ++i) {
+			freePages.add(new Integer(i));
+		}
+    	
     }
 
     /**
@@ -68,6 +68,42 @@ public class UserKernel extends ThreadedKernel {
 	return ((UThread) KThread.currentThread()).process;
     }
 
+    	static int pageCount() {
+		return freePages.size();
+	}
+	
+	static void deallocatePage(int physpagenum) {
+		
+		lock.acquire();
+		freePages.add(new Integer(physpagenum));
+		lock.release();
+	}
+	
+	static int[] allocatePage(int number) {
+		
+		lock.acquire();
+		if (freePages.size() < number) {
+			lock.release();
+			return null;
+		}
+		int[] current = new int[number];
+		for (int i = 0; number > 0; number--) {
+			 
+			 Integer physpagenum = (Integer)freePages.removeFirst();
+			 if (physpagenum == null) {
+				 for (int j = 0; j < i; ++j) {
+					 freePages.add(new Integer(current[j]));
+				 }
+				 lock.release();
+				 return null;
+			 }
+			 current[i++] = physpagenum.intValue();
+		}
+		
+		lock.release();
+		
+		return current;
+	}
     /**
      * The exception handler. This handler is called by the processor whenever
      * a user instruction causes a processor exception.
@@ -112,33 +148,11 @@ public class UserKernel extends ThreadedKernel {
     public void terminate() {
 	super.terminate();
     }
-	
-    public static int[] allocatePages(int number){
-        lock.acquire();
-        if (freePages.size() < number){
-            lock.release();
-            return null;
-        }
-        int[] current = new int[number];
 
-        for(int i=0; i<number; i++)
-            current[i]=freePages.remove();
-
-        lock.release();
-        return current;
-    }
-
-    public static void deallocatePages(int physPages){
-        lock.acquire();
-        freePages.add(physPages);
-        lock.release();
-    }
 
     /** Globally accessible reference to the synchronized console. */
     public static SynchConsole console;
-
-    // dummy variables to make javac smarter
-    private static Coff dummy1 = null;
-    public static LinkedList<Integer> freePages;
-    public static Lock lock;
+    static UserProcess rootProcess = null;
+    private static LinkedList freePages;
+    private static Lock lock;
 }
