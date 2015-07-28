@@ -32,7 +32,7 @@ public class UserProcess {
 			
 		//create table large enough to handle up to 16 files at one time
 		
-		fdTable = new OpenFile[16]; 
+		fdTable = new OpenFile[MAXFD]; //MAXFD = 16 
 		
 		//fileDescriptors 0 and 1 must refer to standard input and output
 		fdTable[0] = UserKernel.console.openForReading(); //STDIN
@@ -422,7 +422,7 @@ public class UserProcess {
 		OpenFile file = UserKernel.fileSystem.open(fileName,true); //truncate = true it will create file with zero length if doesnt exist
 			
 		//check for open fdTable
-		for(int i=2; i<16; i++){
+		for(int i=2; i<MAXFD; i++){
 			if(fdTable[i] == null){
 				fdTable[i] = file;
 				return i; // return value of fileDescriptor
@@ -456,7 +456,7 @@ public class UserProcess {
 		}
 		
 		//check for open fdTable
-		for(int i=2; i<16; i++){
+		for(int i=2; i<MAXFD; i++){
 			if(fdTable[i] == null){
 				fdTable[i] = file;
 				return i; // return value of fileDescriptor
@@ -469,7 +469,7 @@ public class UserProcess {
 	
 	private int handleWrite(int fileDescriptor, int buffer, int count){
 		//check that fileDescriptor index is valid
-		if(fileDescriptor < 0 || fileDescriptor > 15){
+		if(fileDescriptor < 0 || fileDescriptor > MAXFD){
 			return -1; // error
 		}
 		
@@ -497,7 +497,7 @@ public class UserProcess {
 	
 	private int handleRead(int fileDescriptor, int buffer, int count){
 		//check that fileDescriptor index is valid
-		if(fileDescriptor < 0 || fileDescriptor > 15){
+		if(fileDescriptor < 0 || fileDescriptor > MAXFD){
 			return -1; // error
 		}
 		
@@ -686,4 +686,6 @@ public class UserProcess {
     
     //ADDING FILE TABLE
     protected OpenFile[] fdTable;
+    private static final int MAXFD = 16;
+    
 }
