@@ -7,6 +7,7 @@ import java.util.TreeSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import nachos.machine.Lib;
+import java.util.Random;
 
 /**
  * A scheduler that chooses threads using a lottery.
@@ -216,7 +217,7 @@ public class LotteryScheduler extends PriorityScheduler {
             
             PriorityQueue queue = (PriorityQueue) thread.waitForJoin;
             if (queue.transferPriority)
-                for (KThread thread : queue.waitQueue) {
+                for (Iterator<ThreadQueue> T = resource.iterator(); T.hasNext();) {
                     set.add(this);
                     effectivePriority += getThreadState(thread).getEffectivePriority(set);
                     set.remove(this);
