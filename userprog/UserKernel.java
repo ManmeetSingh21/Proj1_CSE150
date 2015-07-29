@@ -157,17 +157,9 @@ public class UserKernel extends ThreadedKernel {
         }
         int[] current = new int [number];
 
-        for (int count = 0; number > 0; number--) {
-			 Integer ppn = (Integer)freePages.removeFirst();
-			 if (ppn == null) {
-				 for (int i = 0; i < count; ++i) {
-					 freePages.add(new Integer(current[i]));
-				 }
-				 lock.release();
-				 return null;
-			 }
-			 current[count++] = ppn.intValue();
-		}
+        for(int i=0; i<number; i++)
+   		current[i]=(Integer)freePages.remove();
+        
         lock.release();
         return current; 
     }
