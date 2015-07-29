@@ -147,26 +147,26 @@ public class UserProcess {
 	byte[] memory = Machine.processor().getMemory();
 	int VPN1 = Processor.pageFromAddress(vaddr);
 	int offset1 = Processor.offsetFromAddress(vaddr);
--	int VPNend = Processor.pageFromAddress(vaddr + length);
+	int VPNend = Processor.pageFromAddress(vaddr + length);
 	
 	TranslationEntry entry = getTranslationEntry(VPN1, false);
--	if (entry == null){
--		return 0;
--	}
--
--
--	int amount = Math.min(length, pageSize - offset1);
--	System.arraycopy(memory, Processor.makeAddress(entry.ppn, offset1), data, offset, amount);
--	offset += amount;
+	if (entry == null){
+		return 0;
+	}
+
+
+	int amount = Math.min(length, pageSize - offset1);
+	System.arraycopy(memory, Processor.makeAddress(entry.ppn, offset1), data, offset, amount);
+	offset += amount;
 	for (int i = VPN1 +1; i<= VPNend; i++){
--		entry= getTranslationEntry(i, false);
--		if (entry== null){
--			return amount;
--		}
--		int length2 = Math.min(length-amount, pageSize);
--		System.arraycopy(memory, Processor.makeAddress(entry.ppn, 0), data, offset, length2);
--		offset += length2;
--		amount += length2;
+		entry= getTranslationEntry(i, false);
+		if (entry== null){
+			return amount;
+		}
+		int length2 = Math.min(length-amount, pageSize);
+		System.arraycopy(memory, Processor.makeAddress(entry.ppn, 0), data, offset, length2);
+		offset += length2;
+		amount += length2;
  	}
  	
  	return amount;
@@ -230,23 +230,23 @@ public class UserProcess {
 	
 	int VPN1 = Processor.pageFromAddress(vaddr);
  	int offset1 = Processor.offsetFromAddress(vaddr);
--	int VPNend = Processor.pageFromAddress(vaddr + length);
--	
--	TranslationEntry entry = getTranslationEntry(VPN1, true);
--	if (entry == null){
--		return 0;
--	}
---	int amount = Math.min(length, pageSize - offset1);
+	int VPNend = Processor.pageFromAddress(vaddr + length);
+	
+	TranslationEntry entry = getTranslationEntry(VPN1, true);
+	if (entry == null){
+		return 0;
+	}
+	int amount = Math.min(length, pageSize - offset1);
 	System.arraycopy(data, offset, memory, Processor.makeAddress(entry.ppn, offset1), amount);
--	offset += amount;
+	offset += amount;
 
--	for (int i = VPN1 +1; i<= VPNend; i++){
--		entry= getTranslationEntry(i, true);
--		if (entry== null){	
+	for (int i = VPN1 +1; i<= VPNend; i++){
+		entry= getTranslationEntry(i, true);
+		if (entry== null){	
 			return amount;
  		}
  		int length2 = Math.min(length-amount, pageSize);
--		System.arraycopy(data, offset, memory, Processor.makeAddress(entry.ppn, 0), length2);
+		System.arraycopy(data, offset, memory, Processor.makeAddress(entry.ppn, 0), length2);
 		offset += length2;
 		amount += length2;
 }
