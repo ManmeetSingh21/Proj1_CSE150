@@ -63,7 +63,7 @@ public class LotteryScheduler extends PriorityScheduler {
    public static ThreadState schedulingState = null;
 
 private void acquire(KThread thread) {
-       acquiredList.add(thread);
+       acquired.add(thread);
    }
     
 public KThread nextThread() {
@@ -168,7 +168,7 @@ public KThread nextThread() {
    	public boolean transferPriority;
 	private ThreadState holder = null;   //holder  
         private LinkedList<KThread> waitQueue = new LinkedList<KThread>(); //wait queue
-   protected ArrayList acquiredList = new ArrayList();
+   protected ArrayList acquired = new ArrayList();
 
 }
    
