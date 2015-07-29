@@ -170,6 +170,7 @@ public class UserProcess {
  	}
  	
  	return amount;
+				 }
 /**
 	int VPN1 = Processor.pageFromAddress(vaddr);
 	int offset1 = Processor.offsetFromAddress(vaddr);
