@@ -30,8 +30,8 @@ public class UserKernel extends ThreadedKernel {
     
     	lock = new Lock();
 	freePages = new LinkedList();
-	for (int i = 0; i < Machine.processor().getNumPhysPages(); ++i) {
-			freePages.add(new Integer(i));
+	for (int i = 0; i < Machine.processor().getNumPhysPages(); i++) {
+			freePages.add(i);
 		}
     	
     }
@@ -67,7 +67,7 @@ public class UserKernel extends ThreadedKernel {
 	
 	return ((UThread) KThread.currentThread()).process;
     }
-
+/**
     	public static int pageCount() {
 		return freePages.size();
 	}
@@ -103,7 +103,7 @@ public class UserKernel extends ThreadedKernel {
 		lock.release();
 		
 		return current;
-	}
+	}**/
     /**
      * The exception handler. This handler is called by the processor whenever
      * a user instruction causes a processor exception.
@@ -148,7 +148,27 @@ public class UserKernel extends ThreadedKernel {
     public void terminate() {
 	super.terminate();
     }
+    
+    public static int[] allocatePages(int number){
+        lock.acquire();
+        if (freePages.size() < number){
+            lock.release();
+            return null;
+        }
+        int[] current = new int[] number;
 
+        for(int i=0; i<number; i++)
+            current[i]=freePages.remove();
+
+        lock.release;
+        return current 
+    }
+
+    public static void deallocatePages(int physPages){
+        lock.acquire();
+        freePages.add(physPages);
+        lock.release();
+    }
 
     /** Globally accessible reference to the synchronized console. */
     public static SynchConsole console;
