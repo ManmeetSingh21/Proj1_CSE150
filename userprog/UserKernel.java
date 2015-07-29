@@ -158,7 +158,7 @@ public class UserKernel extends ThreadedKernel {
         int[] current = new int [number];
 
         for(int i=0; i<number; i++)
-            current[i]=freePages.remove();
+            current[i]=(Integer)freePages.remove();
 
         lock.release();
         return current; 
