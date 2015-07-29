@@ -62,11 +62,10 @@ public class LotteryScheduler extends PriorityScheduler {
     
    public static ThreadState schedulingState = null;
 
-public void acquire(KThread thread) {
-	    Lib.assertTrue(Machine.interrupt().disabled());
-	    getThreadState(thread).acquire(this);
-    	
-    }
+  private void acquire(KThread thread) {
+       acquiredList.add(thread);
+   }
+
 public KThread nextThread() {
 	    Lib.assertTrue(Machine.interrupt().disabled());
 	    // implement me
@@ -98,7 +97,7 @@ public KThread nextThread() {
         }
         
         
-           protected ThreadState pickNextThread() {
+           protected KThread pickNextThread() {
         
        if(isEmpty())
            return null;
@@ -170,6 +169,8 @@ public KThread nextThread() {
 	private ThreadState holder = null;   //holder  
         private LinkedList<KThread> waitQueue = new LinkedList<KThread>(); //wait queue
    	protected KThread thread;
+   	   protected ArrayList acquiredList = new ArrayList();
+
 
 
 }
