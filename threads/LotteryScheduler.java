@@ -116,11 +116,11 @@ public KThread nextThread() {
        if(num == 1)
            return getThreadState((KThread) threadList.get(0));
 
-       for(int i = 1; i < threadList.size(); i++) {
-           KThread thread = (KThread) threadList.get(i);
+       for(int j = 1; j < threadList.size(); j++) {
+           KThread thread = (KThread) threadList.get(j);
            curr += getThreadState(thread).getPriority();
            if(curr > num) {
-               pos = i;
+               pos = j;
                break;
            }
        }
@@ -142,9 +142,9 @@ public KThread nextThread() {
        int sum = 0;
 
 
-       for(int i = 0; i < threadList.size(); i++) {
+       for(int j = 0; j < threadList.size(); j++) {
            
-           KThread thread = (KThread) threadList.get(i);
+           KThread thread = (KThread) threadList.get(j);
            
            sum += getThreadState(thread).getPriority();
            
