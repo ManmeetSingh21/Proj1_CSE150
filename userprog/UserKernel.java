@@ -155,13 +155,13 @@ public class UserKernel extends ThreadedKernel {
             lock.release();
             return null;
         }
-        int[] current = new int[] number;
+        int[] current = new int [number];
 
         for(int i=0; i<number; i++)
             current[i]=freePages.remove();
 
-        lock.release;
-        return current 
+        lock.release();
+        return current; 
     }
 
     public static void deallocatePages(int physPages){
