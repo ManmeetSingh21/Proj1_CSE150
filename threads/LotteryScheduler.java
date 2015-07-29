@@ -164,7 +164,7 @@ public class LotteryScheduler extends PriorityScheduler {
             
            
             
-            for (Iterator<KThread> thread = waitQueue.iterator()){
+            for (Iterator<KThread> thread = waitQueue.iterator();){
                 
                 Sum[i++] = lotteryTotal += getThreadState(thread).getEffectivePriority();
             }
@@ -172,7 +172,7 @@ public class LotteryScheduler extends PriorityScheduler {
             int L = random.nextInt(lotteryTotal);
             
            
-            for (Iterator<KThread> thread = waitQueue.iterator()){
+            for (Iterator<KThread> thread = waitQueue.iterator();){
                 
                 if (L < Sum[i++]){
 
@@ -202,8 +202,7 @@ public class LotteryScheduler extends PriorityScheduler {
         }
         
         private int getEffectivePriority(HashSet<LotteryState> set) {
-            //			if (effectivePriority != expiredEffectivePriority)
-            //				return effectivePriority;
+           
             
             if (set.contains(this)) {
 
@@ -233,9 +232,5 @@ public class LotteryScheduler extends PriorityScheduler {
     }
     
     protected Random random = new Random(25);
-    public boolean transferPriority;
-    private ThreadState holder = null;   //holder
-    private LinkedList<KThread> waitQueue = new LinkedList<KThread>(); //wait queue
-    private int effective; //highest val
-    private boolean dirty; //set to true
+    
 }
