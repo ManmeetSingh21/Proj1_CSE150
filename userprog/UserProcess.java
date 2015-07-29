@@ -145,7 +145,7 @@ public class UserProcess {
 	Lib.assertTrue(offset >= 0 && length >= 0 && offset+length <= data.length);
 
 	byte[] memory = Machine.processor().getMemory();
-
+/**
 	int VPN1 = Processor.pageFromAddress(vaddr);
 	int offset1 = Processor.offsetFromAddress(vaddr);
 	int amount = 0;
@@ -168,7 +168,7 @@ public class UserProcess {
 	
 	return amount;
     }
-
+**/
     /**
      * Transfer all data from the specified array to this process's virtual
      * memory.
@@ -201,7 +201,7 @@ public class UserProcess {
 	Lib.assertTrue(offset >= 0 && length >= 0 && offset+length <= data.length);
 
 	byte[] memory = Machine.processor().getMemory();
-
+/*
 	int VPN1 = Processor.pageFromAddress(vaddr);
 	int offset1 = Processor.offsetFromAddress(vaddr);
 	int amount = 0;
@@ -235,7 +235,7 @@ public class UserProcess {
 		pageTable[virtual].dirty |= write;
 		return pageTable[virtual];
 	}
-	
+	*/
     /**
      * Load the executable with the specified name into this process, and
      * prepare to pass it the specified arguments. Opens the executable, reads
