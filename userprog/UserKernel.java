@@ -153,6 +153,6 @@ public class UserKernel extends ThreadedKernel {
     /** Globally accessible reference to the synchronized console. */
     public static SynchConsole console;
     static UserProcess rootProcess = null;
-    private static LinkedList freePages;
-    private static Lock lock;
+    public static LinkedList freePages;
+    public static Lock lock;
 }
