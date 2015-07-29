@@ -111,7 +111,7 @@ public KThread nextThread() {
        int num;
        
        lotteryTickets = sum();
-       num = R.nextInt(loterryTickets) + 1;
+       num = R.nextInt(lotteryTickets) + 1;
        
        if(num == 1)
            return getThreadState((KThread) threadList.get(0));
@@ -156,7 +156,7 @@ public KThread nextThread() {
            
        }
        
-       return curr;
+       return sum;
        
    }
    
@@ -167,5 +167,9 @@ public KThread nextThread() {
    }
    
    protected ArrayList threadList = new ArrayList();
+   	public boolean transferPriority;
+	private ThreadState holder = null;   //holder  
+        private LinkedList<KThread> waitQueue = new LinkedList<KThread>(); //wait queue
+
 }
    
