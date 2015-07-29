@@ -256,7 +256,7 @@ public class UserProcess {
 	protected TranslationEntry getTranslationEntry(int virtual, boolean write) {
 		if (virtual < 0 || virtual >= numPages)
 			return null;
-		TranslationEntry result = pageTable[vpn];
+		TranslationEntry result = pageTable[virtual];
 		if (result == null)
 			return null;
 		if (result.readOnly && write)
