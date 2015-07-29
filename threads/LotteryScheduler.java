@@ -126,7 +126,9 @@ public class LotteryScheduler extends PriorityScheduler {
      * @param	thread	the thread whose scheduling state to return.
      * @return	the scheduling state of the specified thread.
      */
-    protected ThreadState getThreadState(KThread thread) {
+     	@Override
+
+    protected LotteryState getThreadState(KThread thread) {
         if (thread.schedulingState == null)
             thread.schedulingState = new LotteryState(thread);
         
