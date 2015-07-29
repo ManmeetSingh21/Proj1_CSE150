@@ -149,7 +149,7 @@ public class UserKernel extends ThreadedKernel {
 	super.terminate();
     }
     
-    public static int[] allocatePages(int number){
+    public static int[] allocatePage(int number){
         lock.acquire();
         if (freePages.size() < number){
             lock.release();
@@ -164,7 +164,7 @@ public class UserKernel extends ThreadedKernel {
         return current; 
     }
 
-    public static void deallocatePages(int physPages){
+    public static void deallocatePage(int physPages){
         lock.acquire();
         freePages.add(physPages);
         lock.release();
