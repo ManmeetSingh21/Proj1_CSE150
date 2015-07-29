@@ -2,12 +2,11 @@
 package nachos.threads;
 
 import nachos.machine.*;
+import nachos.threads.PriorityScheduler.PriorityQueue;
+import nachos.threads.PriorityScheduler.ThreadState;
 
-import java.util.TreeSet;
-import java.util.HashSet;
-import java.util.Iterator;
-import nachos.machine.Lib;
-import java.util.Random;
+import java.util.*;
+
 
 /**
  * A scheduler that chooses threads using a lottery.
@@ -47,62 +46,6 @@ public class LotteryScheduler extends PriorityScheduler {
     
     //COPIED FROM PRIORITY SCHEDULER
    
-    	@Override
-
-    public int getPriority(KThread thread) {
-        Lib.assertTrue(Machine.interrupt().disabled());
-        
-        return getThreadState(thread).getPriority();
-    }
-    	@Override
-
-    public int getEffectivePriority(KThread thread) {
-        Lib.assertTrue(Machine.interrupt().disabled());
-        
-        return getThreadState(thread).getEffectivePriority();
-    }
-    	@Override
-
-    public void setPriority(KThread thread, int priority) {
-        Lib.assertTrue(Machine.interrupt().disabled());
-        
-        Lib.assertTrue(priority >= priorityMinimum &&
-                       priority <= priorityMaximum);
-        
-        getThreadState(thread).setPriority(priority);
-    }
-    	@Override
-
-    public boolean increasePriority() {
-        boolean intStatus = Machine.interrupt().disable();
-        
-        KThread thread = KThread.currentThread();
-        
-        int priority = getPriority(thread);
-        if (priority == priorityMaximum)
-            return false;
-        
-        setPriority(thread, priority+1);
-        
-        Machine.interrupt().restore(intStatus);
-        return true;
-    }
-    	@Override
-
-    public boolean decreasePriority() {
-        boolean intStatus = Machine.interrupt().disable();
-        
-        KThread thread = KThread.currentThread();
-        
-        int priority = getPriority(thread);
-        if (priority == priorityMinimum)
-            return false;
-        
-        setPriority(thread, priority-1);
-        
-        Machine.interrupt().restore(intStatus);
-        return true;
-    }
     
     /**
      * The default priority for a new thread. Do not change this value.
@@ -117,120 +60,112 @@ public class LotteryScheduler extends PriorityScheduler {
      */
     public static final int priorityMaximum = Integer.MAX_VALUE;
     
+   public static ThreadState schedulingState = null;
 
-    
-
-    /**
-     * Return the scheduling state of the specified thread.
-     *
-     * @param	thread	the thread whose scheduling state to return.
-     * @return	the scheduling state of the specified thread.
-     */
-     	@Override
-
-    protected LotteryState getThreadState(KThread thread) {
-        if (thread.schedulingState == null)
-            thread.schedulingState = new LotteryState(thread);
-        
-        return (LotteryState) thread.schedulingState;
+public void acquire(KThread thread) {
+	    Lib.assertTrue(Machine.interrupt().disabled());
+	    getThreadState(thread).acquire(this);
+    	
     }
     
-    /*Lottery thread queue.*/
-    
-    public ThreadQueue newThreadQueue(boolean transferPriority) {
-        
-        return new lotteryQueue(transferPriority);
+public KThread nextThread() {
+	    Lib.assertTrue(Machine.interrupt().disabled());
+	    // implement me
+	
+		if (this.transferPriority && this.holder != null) //if (holder and transfer priority exists)
+		{
+	
+			this.holder.resource.remove(this); //remove from list
+	
+		}
 
-    }
-    
-    protected class lotteryQueue extends PriorityScheduler.PriorityQueue {
-        lotteryQueue(boolean transferPriority) {
+		if (waitQueue.isEmpty())
+            		{ //if (waitQueue is empty)
+	    
+	    		return null;//return null
+			
+            		}
+	//incomptype thread state -> kthread
+            KThread FT = pickNextThread(); //ThreadState FT = pickNextThread();
             
-            super(transferPriority);
-        
+            if (FT != null) { 
+            	
+                waitQueue.remove(FT); //remove FT from waitQueue
+                
+                getThreadState(FT).acquire(this); //FT.acquire();
+            }
+            
+            return FT;
         }
         
-      
-        protected LotteryState pickNextThread() {
-            
-            int lotteryTotal = 0, i = 0;
-            
-            int[] Sum = new int[waitQueue.size()];
-            
-            if (waitQueue.isEmpty()){
-                
-                return null;
-            }
-            
-           
-            
-            for (Iterator<KThread> thread = waitQueue.iterator();){
-                
-                Sum[i++] = lotteryTotal += getThreadState(thread).getEffectivePriority();
-            }
-            
-            int L = random.nextInt(lotteryTotal);
-            
-           
-            for (Iterator<KThread> thread = waitQueue.iterator();){
-                
-                if (L < Sum[i++]){
+        
+           protected ThreadState pickNextThread() {
+        
+       if(isEmpty())
+           return null;
 
-                    return getThreadState(thread);
-                }
-                
-            }
-            Lib.assertNotReached();
-            
-            return null;
-            
-        }
-        
-    }
-    
-    protected class LotteryState extends PriorityScheduler.ThreadState {
-        
-        public LotteryState(KThread thread) {
+       int pos = 0;
+       int curr = 0;
+       int lotteryTickets;
+        Random R = new Random();
+       int num;
        
-            super(thread);
-        
-        }
-        
-        @Override
-        public int getEffectivePriority() {
-            return getEffectivePriority(new HashSet<LotteryState>());
-        }
-        
-        private int getEffectivePriority(HashSet<LotteryState> set) {
-           
-            
-            if (set.contains(this)) {
+       lotteryTickets = sum();
+       num = R.nextInt(loterryTickets) + 1;
+       
+       if(num == 1)
+           return getThreadState((KThread) threadList.get(0));
 
-                return priority;
-            }
-            
-            effectivePriority = priority;
-            
-            for (PriorityQueue queue : donationQueue)
-                if (queue.transferPriority)
-                    for (KThread thread : queue.waitQueue) {
-                        set.add(this);
-                        effectivePriority += getThreadState(thread).getEffectivePriority(set);
-                        set.remove(this);
-                    }
-            
-            PriorityQueue queue = (PriorityQueue) thread.waitForJoin;
-            if (queue.transferPriority)
-                for (Iterator<ThreadQueue> T = resource.iterator(); T.hasNext();) {
-                    set.add(this);
-                    effectivePriority += getThreadState(thread).getEffectivePriority(set);
-                    set.remove(this);
-                }
-            
-            return effectivePriority;
+       for(int i = 1; i < threadList.size(); i++) {
+           KThread thread = (KThread) threadList.get(i);
+           curr += getThreadState(thread).getPriority();
+           if(curr > num) {
+               pos = i;
+               break;
+           }
+       }
+       return getThreadState((KThread) threadList.get(pos));
+   
+
+               
         }
-    }
-    
-    protected Random random = new Random(25);
-    
+
+
+
+    protected int sum() {
+        
+       if(isEmpty())
+       
+           return 0;
+       
+       
+       int sum = 0;
+
+
+       for(int i = 0; i < threadList.size(); i++) {
+           
+           KThread thread = (KThread) threadList.get(i);
+           
+           sum += getThreadState(thread).getPriority();
+           
+           if(sum > priorityMaximum) {
+               
+               sum = priorityMaximum;
+               
+           }
+           
+       }
+       
+       return curr;
+       
+   }
+   
+    public boolean isEmpty() {
+        
+       return threadList.isEmpty();
+       
+   }
+   
+   protected ArrayList threadList = new ArrayList();
 }
+   
