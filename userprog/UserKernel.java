@@ -29,7 +29,7 @@ public class UserKernel extends ThreadedKernel {
 	    });
     
     	lock = new Lock();
-	freePages = new LinkedList();
+	freePages = new LinkedList<Integer>();
 	for (int i = 0; i < Machine.processor().getNumPhysPages(); i++) {
 			freePages.add(i);
 		}
