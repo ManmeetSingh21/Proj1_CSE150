@@ -4,7 +4,8 @@ package nachos.threads;
 import nachos.machine.*;
 import nachos.threads.PriorityScheduler.PriorityQueue;
 import nachos.threads.PriorityScheduler.ThreadState;
-
+import java.util.LinkedList;
+import java.util.Iterator;
 import java.util.*;
 
 
@@ -84,7 +85,7 @@ public KThread nextThread() {
 			
             		}
 	//incomptype thread state -> kthread
-            KThread FT = pickNextThread(); //ThreadState FT = pickNextThread();
+            ThreadState FT = pickNextThread(); //ThreadState FT = pickNextThread();
             
             if (FT != null) { 
             	
@@ -97,7 +98,7 @@ public KThread nextThread() {
         }
         
         
-           protected KThread pickNextThread() {
+           protected ThreadState pickNextThread() {
         
        if(isEmpty())
            return null;
