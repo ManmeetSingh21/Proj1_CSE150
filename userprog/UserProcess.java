@@ -145,6 +145,31 @@ public class UserProcess {
 	Lib.assertTrue(offset >= 0 && length >= 0 && offset+length <= data.length);
 
 	byte[] memory = Machine.processor().getMemory();
+	int VPN1 = Processor.pageFromAddress(vaddr);
+	int offset1 = Processor.offsetFromAddress(vaddr);
+-	int VPNend = Processor.pageFromAddress(vaddr + length);
+	
+	TranslationEntry entry = getTranslationEntry(VPN1, false);
+-	if (entry == null){
+-		return 0;
+-	}
+-
+-
+-	int amount = Math.min(length, pageSize - offset1);
+-	System.arraycopy(memory, Processor.makeAddress(entry.ppn, offset1), data, offset, amount);
+-	offset += amount;
+	for (int i = VPN1 +1; i<= VPNend; i++){
+-		entry= getTranslationEntry(i, false);
+-		if (entry== null){
+-			return amount;
+-		}
+-		int length2 = Math.min(length-amount, pageSize);
+-		System.arraycopy(memory, Processor.makeAddress(entry.ppn, 0), data, offset, length2);
+-		offset += length2;
+-		amount += length2;
+ 	}
+ 	
+ 	return amount;
 /**
 	int VPN1 = Processor.pageFromAddress(vaddr);
 	int offset1 = Processor.offsetFromAddress(vaddr);
@@ -201,6 +226,45 @@ public class UserProcess {
 	Lib.assertTrue(offset >= 0 && length >= 0 && offset+length <= data.length);
 
 	byte[] memory = Machine.processor().getMemory();
+	
+	int VPN1 = Processor.pageFromAddress(vaddr);
+ 	int offset1 = Processor.offsetFromAddress(vaddr);
+-	int VPNend = Processor.pageFromAddress(vaddr + length);
+-	
+-	TranslationEntry entry = getTranslationEntry(VPN1, true);
+-	if (entry == null){
+-		return 0;
+-	}
+--	int amount = Math.min(length, pageSize - offset1);
+	System.arraycopy(data, offset, memory, Processor.makeAddress(entry.ppn, offset1), amount);
+-	offset += amount;
+
+-	for (int i = VPN1 +1; i<= VPNend; i++){
+-		entry= getTranslationEntry(i, true);
+-		if (entry== null){	
+			return amount;
+ 		}
+ 		int length2 = Math.min(length-amount, pageSize);
+-		System.arraycopy(data, offset, memory, Processor.makeAddress(entry.ppn, 0), length2);
+		offset += length2;
+		amount += length2;
+}
+	return amount;
+				  }
+				  
+	protected TranslationEntry getTranslationEntry(int virtual, boolean write) {
+		if (virtual < 0 || virtual >= numPages)
+			return null;
+		TranslationEntry result = pageTable[vpn];
+		if (result == null)
+			return null;
+		if (result.readOnly && write)
+			return null;
+		result.used = true;
+		if (write)
+			result.dirty = true;
+		return result;
+	}
 /*
 	int VPN1 = Processor.pageFromAddress(vaddr);
 	int offset1 = Processor.offsetFromAddress(vaddr);
@@ -332,48 +396,51 @@ public class UserProcess {
      * @return	<tt>true</tt> if the sections were successfully loaded.
      */
     protected boolean loadSections() {
-	int[] physpagenums = UserKernel.allocatePage(numPages);
-	
-	if (physpagenums == null) {
-	    coff.close();
-	    Lib.debug(dbgProcess, "\tinsufficient physical memory");
-	    return false;
-	}
-	pageTable= new TranslationEntry[numPages];
-	// load sections
-	for (int s=0; s<coff.getNumSections(); s++) {
-	    CoffSection section = coff.getSection(s);
-	    
-	    Lib.debug(dbgProcess, "\tinitializing " + section.getName()
-		      + " section (" + section.getLength() + " pages)");
+	// physical page numbers allocated
+		int[] physpagenums = UserKernel.allocatePage(numPages);
 
-	    for (int i=0; i<section.getLength(); i++) {
-		int vpn = section.getFirstVPN()+i;
-		int ppn = physpagenums[vpn];
-		pageTable[vpn] = new TranslationEntry(vpn, ppn, true, section.isReadOnly(), false, false);
-		// for now, just assume virtual addresses=physical addresses
-		section.loadPage(i, ppn);
-	    }
-	}
-		int num = stackPages +1;
-		for(int i= 0; i< num; ++i){
-			int j = numPages - num + i;
-			pageTable[j]= new TranslationEntry(j, physpagenums[j], true, false, false, false);
+		if (physpagenums == null) {
+			coff.close();
+			Lib.debug(dbgProcess, "\tinsufficient physical memory");
+			return false;
 		}
-	return true;
-    }
 
+		pageTable = new TranslationEntry[numPages];
+
+		// load sections
+		// the sections are contiguous and start at page 0
+		for (int s = 0; s < coff.getNumSections(); s++) {
+			CoffSection section = coff.getSection(s);
+
+			Lib.debug(dbgProcess, "\tinitializing " + section.getName()
+					+ " section (" + section.getLength() + " pages)");
+
+			for (int i = 0; i < section.getLength(); i++) {
+				int vpn = section.getFirstVPN() + i;
+				int ppn = physpagenums[vpn];
+				pageTable[vpn] = new TranslationEntry(vpn, ppn, true, section
+						.isReadOnly(), false, false);
+				section.loadPage(i, ppn);
+			}
+		}
+
+		// allocate free pages for stack and argv
+		for (int i = numPages - stackPages - 1; i < numPages; i++) {
+			pageTable[i] = new TranslationEntry(i, physpagenums[i], true, false, false,
+					false);
+		}
+
+		return true;
+	}
     /**
      * Release any resources allocated by <tt>loadSections()</tt>.
      */
     protected void unloadSections() {
-    	for (int i= 0; i<numPages; i++){
-    		UserKernel.deallocatePage(pageTable[i].ppn);
-    	}
-    	pageTable = null;
-    	coff.close();
-
-    }    
+    		coff.close();
+		for (int i = 0; i < numPages; i++)
+			UserKernel.deallocatePage(pageTable[i].ppn);
+		pageTable = null;
+	} 
 
     /**
      * Initialize the processor's registers in preparation for running the
