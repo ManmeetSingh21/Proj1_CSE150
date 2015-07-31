@@ -71,7 +71,7 @@ public class LotteryScheduler extends PriorityScheduler {
 	
        acquiredList.add(waitQueue);
    }
- public void remove(LotteryScheduler lottery) {           
+ public void removeQueue(LotteryScheduler lottery) {           
        acquiredList.remove(lottery);                          
    }
    
