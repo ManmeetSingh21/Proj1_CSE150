@@ -174,7 +174,6 @@ public class LotteryScheduler extends PriorityScheduler {
    	public boolean transferPriority;
 	private KThread holder = null;   //holder  
         private LinkedList<KThread> waitQueue = new LinkedList<KThread>(); //wait queue
-   	protected KThread thread;
    	   protected ArrayList acquiredList = new ArrayList();
 
 
