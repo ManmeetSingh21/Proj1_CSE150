@@ -71,7 +71,10 @@ public class LotteryScheduler extends PriorityScheduler {
 	
        acquiredList.add(waitQueue);
    }
-
+ public void remove(LotteryScheduler lottery) {           
+       acquiredList.remove(lottery);                          
+   }
+   
 public KThread nextThread() {
 	    Lib.assertTrue(Machine.interrupt().disabled());
 	    // implement me
