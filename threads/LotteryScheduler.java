@@ -64,7 +64,12 @@ public class LotteryScheduler extends PriorityScheduler {
    public static ThreadState schedulingState = null;
 
   private void acquire(KThread thread) {
-       acquiredList.add(thread);
+  	
+	 	Lib.assertTrue(Machine.interrupt().disabled()); //no interrupts
+	
+
+	
+       acquiredList.add(waitQueue);
    }
 
 public KThread nextThread() {
@@ -74,7 +79,7 @@ public KThread nextThread() {
 		if (this.transferPriority && this.holder != null) //if (holder and transfer priority exists)
 		{
 	
-			this.holder.resource.remove(this); //remove from list
+			this.holder.acquiredList.remove(this); //remove from list
 	
 		}
 
@@ -85,7 +90,7 @@ public KThread nextThread() {
 			
             		}
 	//incomptype thread state -> kthread
-            ThreadState FT = pickNextThread(); //ThreadState FT = pickNextThread();
+            KThread FT = pickNextThread(); //ThreadState FT = pickNextThread();
             
             if (FT != null) { 
             	
@@ -98,7 +103,7 @@ public KThread nextThread() {
         }
         
         
-           protected ThreadState pickNextThread() {
+           protected KTHread pickNextThread() {
         
        if(isEmpty())
            return null;
@@ -138,24 +143,24 @@ public KThread nextThread() {
            return 0;
        
        
-       int sum = 0;
+       int curr = 0;
 
 
        for(int j = 0; j < threadList.size(); j++) {
            
            KThread thread = (KThread) threadList.get(j);
            
-           sum += getThreadState(thread).getPriority();
+           curr += getThreadState(thread).getPriority();
            
-           if(sum > priorityMaximum) {
+           if(curr > priorityMaximum) {
                
-               sum = priorityMaximum;
+               curr = priorityMaximum;
                
            }
            
        }
        
-       return sum;
+       return curr;
        
    }
    
@@ -171,6 +176,7 @@ public KThread nextThread() {
         private LinkedList<KThread> waitQueue = new LinkedList<KThread>(); //wait queue
    	protected KThread thread;
    	   protected ArrayList acquiredList = new ArrayList();
+
 
 
 
