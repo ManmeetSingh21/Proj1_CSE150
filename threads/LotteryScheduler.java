@@ -69,42 +69,39 @@ public class LotteryScheduler extends PriorityScheduler {
 	
 
 	
-       acquiredList.add(waitQueue);
+       acquiredList.add(thread);
    }
  public void removeQueue(LotteryScheduler lottery) {           
        acquiredList.remove(lottery);                          
    }
    
-public KThread nextThread() {
-	    Lib.assertTrue(Machine.interrupt().disabled());
-	    // implement me
-	
-		if (this.transferPriority && this.holder != null) //if (holder and transfer priority exists)
-		{
-	
-			this.holder.acquiredList.remove(this); //remove from list
-	
-		}
+  public KThread nextThread() {
+       boolean initial = Machine.interrupt().disable();
+       
+       if(holder!= null)
+           holder = null;
 
-		if (waitQueue.isEmpty())
-            		{ //if (waitQueue is empty)
-	    
-	    		return null;//return null
-			
-            		}
-	//incomptype thread state -> kthread
-            KThread FT = pickNextThread(); //ThreadState FT = pickNextThread();
-            
-            if (FT != null) { 
-            	
-                waitQueue.remove(FT); //remove FT from waitQueue
-                
-                getThreadState(FT).acquire(this); //FT.acquire();
-            }
-            
-            return FT;
-        }
-        
+       if (isEmpty()) {
+       	
+           holder = null;
+           Machine.interrupt().restore(initial);
+           return null;
+           
+       }
+
+       holder = pickNextThread().thread;
+
+       if(holder != null) {
+       	
+           threadList.remove(holder);
+           acquire(holder);
+           
+       }
+       
+       Machine.interrupt().restore(initial);
+       
+       return holder;
+   }
         
            protected KTHread pickNextThread() {
         
@@ -175,10 +172,11 @@ public KThread nextThread() {
    
    protected ArrayList threadList = new ArrayList();
    	public boolean transferPriority;
-	private ThreadState holder = null;   //holder  
+	private KThread holder = null;   //holder  
         private LinkedList<KThread> waitQueue = new LinkedList<KThread>(); //wait queue
    	protected KThread thread;
    	   protected ArrayList acquiredList = new ArrayList();
+
 
 
 
