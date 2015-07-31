@@ -103,7 +103,7 @@ public class LotteryScheduler extends PriorityScheduler {
        return holder;
    }
         
-           protected KTHread pickNextThread() {
+           protected KThread pickNextThread() {
         
        if(isEmpty())
            return null;
